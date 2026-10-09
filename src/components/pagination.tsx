@@ -8,7 +8,7 @@ type Props = {
   label: string;
 };
 
-const LINK_CLASS = "rounded-md border border-zinc-300 px-3 py-1 text-sm";
+const LINK_CLASS = "inline-flex min-h-9 min-w-9 items-center justify-center rounded-md border border-zinc-300 px-3 text-sm";
 
 export function Pagination({ page, hrefFor, label }: Props) {
   return (

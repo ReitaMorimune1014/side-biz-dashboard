@@ -20,10 +20,12 @@ function showTick(index: number, length: number): boolean {
 export function BarChart({ buckets, caption }: Props) {
   const max = Math.max(...buckets.map((b) => b.amount), 1);
   const showAmounts = buckets.length <= 12;
+  // 月ごと(12本)は、スマホ幅だと金額の文字が隣と重なるので、640px 以上だけ出す
+  const amountClass = buckets.length > 6 ? "hidden sm:block" : "";
 
   return (
     <figure className="flex flex-col gap-2">
-      <div aria-hidden="true" className="flex h-48 items-end gap-0.5 border-b border-zinc-300 px-4 pt-5">
+      <div aria-hidden="true" className="flex h-48 items-end gap-0.5 border-b border-zinc-300 px-1 pt-5 sm:px-4">
         {buckets.map((bucket) => {
           const percent = (bucket.amount / max) * 100;
           return (
@@ -34,7 +36,7 @@ export function BarChart({ buckets, caption }: Props) {
             >
               {showAmounts && bucket.amount > 0 && (
                 <span
-                  className="absolute inset-x-0 text-center text-[10px] whitespace-nowrap text-zinc-700"
+                  className={`absolute inset-x-0 text-center text-[10px] whitespace-nowrap text-zinc-700 ${amountClass}`}
                   style={{ bottom: `calc(${percent}% + 2px)` }}
                 >
                   {formatCompactYen(bucket.amount)}
@@ -48,7 +50,7 @@ export function BarChart({ buckets, caption }: Props) {
           );
         })}
       </div>
-      <div aria-hidden="true" className="flex gap-0.5 px-4">
+      <div aria-hidden="true" className="flex gap-0.5 px-1 sm:px-4">
         {buckets.map((bucket, index) => (
           <span key={bucket.key} className="flex-1 text-center text-[10px] text-zinc-600">
             {showTick(index, buckets.length) ? bucket.label : ""}

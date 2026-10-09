@@ -15,8 +15,8 @@ export function ViewTabs({ current }: { current: (typeof TABS)[number]["href"] }
           aria-current={tab.href === current ? "page" : undefined}
           className={
             tab.href === current
-              ? "rounded bg-white px-3 py-1 font-medium shadow-sm"
-              : "rounded px-3 py-1 text-zinc-700"
+              ? "inline-flex min-h-8 items-center rounded bg-white px-3 font-medium shadow-sm"
+              : "inline-flex min-h-8 items-center rounded px-3 text-zinc-700"
           }
         >
           {tab.label}

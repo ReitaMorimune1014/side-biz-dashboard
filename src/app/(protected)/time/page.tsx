@@ -3,6 +3,7 @@ import Link from "next/link";
 import { DeleteButton } from "@/components/delete-button";
 import { ListControls } from "@/components/list-controls";
 import { Pagination } from "@/components/pagination";
+import { EmptyState } from "@/components/states";
 import { WeeklySummary } from "@/components/weekly-summary";
 import { verifySession } from "@/lib/auth/dal";
 import { formatDateWithWeekday, todayInTokyo } from "@/lib/date";
@@ -64,12 +65,10 @@ export default async function TimePage({ searchParams }: PageProps<"/time">) {
           稼働を記録
         </h2>
         {projects.length === 0 ? (
-          <div className="rounded-md border border-dashed border-zinc-400 p-8 text-center">
-            <p className="text-zinc-700">稼働を記録するには、先に案件を登録してください。</p>
-            <Link href="/projects/new" className="mt-2 inline-block text-sm underline">
-              案件を追加する
-            </Link>
-          </div>
+          <EmptyState
+            message="稼働を記録するには、先に案件を登録してください。"
+            action={{ href: "/projects/new", label: "案件を追加する" }}
+          />
         ) : (
           <TimeEntryForm
             action={createTimeEntryAction}
@@ -111,16 +110,12 @@ export default async function TimePage({ searchParams }: PageProps<"/time">) {
           />
         )}
         {allEntries.length === 0 ? (
-          <p className="rounded-md border border-dashed border-zinc-400 p-8 text-center text-zinc-700">
-            まだ稼働が記録されていません。
-          </p>
+          <EmptyState message="まだ稼働が記録されていません。" />
         ) : entries.length === 0 ? (
-          <div className="rounded-md border border-dashed border-zinc-400 p-8 text-center">
-            <p className="text-zinc-700">条件に合う記録はありません。</p>
-            <Link href={clearHref} className="mt-2 inline-block text-sm underline">
-              条件をクリアする
-            </Link>
-          </div>
+          <EmptyState
+            message="条件に合う記録はありません。"
+            action={{ href: clearHref, label: "条件をクリアする" }}
+          />
         ) : (
           <ul className="flex flex-col divide-y divide-zinc-200 rounded-md border border-zinc-200">
             {entries.map((entry) => {

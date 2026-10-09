@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { EmptyState } from "@/components/states";
 import { WeeklySummary } from "@/components/weekly-summary";
 import { verifySession } from "@/lib/auth/dal";
 import {
@@ -117,9 +118,7 @@ export default async function DashboardPage() {
           受注・進行の案件のうち、期限切れと{DEADLINE_WINDOW_DAYS}日以内の納期です。
         </p>
         {deadlines.length === 0 ? (
-          <p className="rounded-md border border-dashed border-zinc-400 p-8 text-center text-zinc-700">
-            {DEADLINE_WINDOW_DAYS}日以内に納期を迎える案件はありません。
-          </p>
+          <EmptyState message={`${DEADLINE_WINDOW_DAYS}日以内に納期を迎える案件はありません。`} />
         ) : (
           <ul className="flex flex-col divide-y divide-zinc-200 rounded-md border border-zinc-200">
             {deadlines.map((project) => (

@@ -41,7 +41,7 @@ export function ListControls({ action, searchLabel, placeholder, q, selects, cle
           defaultValue={q}
           placeholder={placeholder}
           maxLength={100}
-          className="rounded-md border border-zinc-400 px-3 py-1.5 text-sm"
+          className="min-h-9 rounded-md border border-zinc-400 px-3 text-sm"
         />
       </div>
       {selects.map((select) => (
@@ -53,7 +53,7 @@ export function ListControls({ action, searchLabel, placeholder, q, selects, cle
             id={`${idPrefix}-${select.name}`}
             name={select.name}
             defaultValue={select.value}
-            className="max-w-56 rounded-md border border-zinc-400 bg-white px-2 py-1.5 text-sm"
+            className="min-h-9 max-w-56 rounded-md border border-zinc-400 bg-white px-2 text-sm"
           >
             {select.options.map((option) => (
               <option key={option.value} value={option.value}>
@@ -66,12 +66,12 @@ export function ListControls({ action, searchLabel, placeholder, q, selects, cle
       <div className="flex items-center gap-3">
         <button
           type="submit"
-          className="rounded-md bg-zinc-900 px-4 py-1.5 text-sm font-medium text-white"
+          className="inline-flex min-h-9 items-center rounded-md bg-zinc-900 px-4 text-sm font-medium text-white"
         >
           検索
         </button>
         {clearHref && (
-          <Link href={clearHref} className="text-sm underline">
+          <Link href={clearHref} className="inline-flex min-h-9 items-center text-sm underline">
             条件をクリア
           </Link>
         )}
