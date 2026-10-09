@@ -100,7 +100,7 @@ describe('データの分離(API を直接呼ぶ)', () => {
   })
 })
 
-describe('状態遷移(DB のトリガー)', () => {
+describe('状態(DB のトリガーと check 制約)', () => {
   it('見積以外の状態で作成できない', async () => {
     const { error } = await alice.client
       .from('projects')
@@ -108,68 +108,15 @@ describe('状態遷移(DB のトリガー)', () => {
     expect(error?.code).toBe(CHECK_VIOLATION)
   })
 
-  it('見積から入金済まで、1つずつ進められる', async () => {
+  it('どの状態からどの状態へも、一度に変更できる', async () => {
     const project = await createProject(alice, aliceCustomerId)
 
-    for (const status of ['ordered', 'in_progress', 'delivered', 'invoiced', 'paid']) {
+    // 飛び越し・大きく戻す・進行から失注・失注から進行を含む
+    for (const status of ['paid', 'estimate', 'in_progress', 'lost', 'delivered', 'ordered']) {
       const { data, error } = await setStatus(alice, project.id, status)
       expect(error).toBeNull()
       expect(data).toEqual([{ status }])
     }
-  })
-
-  it.each([
-    ['estimate', 'paid'],
-    ['estimate', 'in_progress'],
-  ])('%s → %s のような飛び越しは拒否する', async (_from, to) => {
-    const project = await createProject(alice, aliceCustomerId)
-
-    const { error } = await setStatus(alice, project.id, to)
-    expect(error?.code).toBe(CHECK_VIOLATION)
-  })
-
-  it('1つ前には戻せる', async () => {
-    const project = await createProject(alice, aliceCustomerId)
-    await setStatus(alice, project.id, 'ordered')
-
-    const { data, error } = await setStatus(alice, project.id, 'estimate')
-    expect(error).toBeNull()
-    expect(data).toEqual([{ status: 'estimate' }])
-  })
-
-  it('2つ前には、一度に戻せない', async () => {
-    const project = await createProject(alice, aliceCustomerId)
-    await setStatus(alice, project.id, 'ordered')
-    await setStatus(alice, project.id, 'in_progress')
-
-    const { error } = await setStatus(alice, project.id, 'estimate')
-    expect(error?.code).toBe(CHECK_VIOLATION)
-  })
-
-  it('進行からは失注にできない', async () => {
-    const project = await createProject(alice, aliceCustomerId)
-    await setStatus(alice, project.id, 'ordered')
-    await setStatus(alice, project.id, 'in_progress')
-
-    const { error } = await setStatus(alice, project.id, 'lost')
-    expect(error?.code).toBe(CHECK_VIOLATION)
-  })
-
-  it.each(['estimate', 'ordered'])('失注から %s には戻せる', async (to) => {
-    const project = await createProject(alice, aliceCustomerId)
-    expect((await setStatus(alice, project.id, 'lost')).error).toBeNull()
-
-    const { data, error } = await setStatus(alice, project.id, to)
-    expect(error).toBeNull()
-    expect(data).toEqual([{ status: to }])
-  })
-
-  it('失注から進行には移れない', async () => {
-    const project = await createProject(alice, aliceCustomerId)
-    expect((await setStatus(alice, project.id, 'lost')).error).toBeNull()
-
-    const { error } = await setStatus(alice, project.id, 'in_progress')
-    expect(error?.code).toBe(CHECK_VIOLATION)
   })
 
   it('一覧にない状態は拒否する', async () => {

@@ -16,7 +16,7 @@ import {
   parseStatusChange,
   type ProjectFieldErrors,
 } from "@/lib/projects/schema";
-import { PROJECT_STATUS_LABELS, isProjectStatus } from "@/lib/projects/status";
+import { isProjectStatus } from "@/lib/projects/status";
 import { createClient } from "@/lib/supabase/server";
 
 const PROJECTS_PATH = "/projects";
@@ -123,12 +123,6 @@ export async function updateProjectAction(
 
   if (!result.ok) {
     switch (result.reason) {
-      case "invalid_transition": {
-        const { from, to } = change.data;
-        return error(values, {
-          status: `「${PROJECT_STATUS_LABELS[from]}」から「${PROJECT_STATUS_LABELS[to]}」には変更できません`,
-        });
-      }
       case "conflict":
         return error(values, {}, CONFLICT);
       case "not_found":
@@ -145,7 +139,7 @@ export type MoveProjectState = { status: "idle" } | { status: "error"; message: 
 
 const MOVE_CONFLICT = "ほかの画面で状態が変わりました。画面を読み込み直してください";
 
-/** かんばんのボタン用。id・from・to は画面から来るので、形式とルールをここで確かめ直す */
+/** かんばんのボタン・一覧のプルダウン用。id・from・to は画面から来るので、形式をここで確かめ直す */
 export async function moveProjectAction(
   id: string,
   from: string,
@@ -167,11 +161,6 @@ export async function moveProjectAction(
 
   if (!result.ok) {
     switch (result.reason) {
-      case "invalid_transition":
-        return {
-          status: "error",
-          message: `「${PROJECT_STATUS_LABELS[from]}」から「${PROJECT_STATUS_LABELS[to]}」には移動できません`,
-        };
       case "conflict":
         return { status: "error", message: MOVE_CONFLICT };
       case "not_found":

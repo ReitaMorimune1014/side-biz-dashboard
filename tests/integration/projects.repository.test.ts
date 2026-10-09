@@ -41,7 +41,7 @@ describe('updateProject', () => {
     expect(result).toMatchObject({ ok: true, project: { title: '改題', status: 'ordered' } })
   })
 
-  it('ルールに反する遷移は、DB に送る前に拒否する', async () => {
+  it('飛び越した状態にも変更できる', async () => {
     const project = await createProject(alice.client, input())
 
     const result = await updateProject(alice.client, project.id, input(), {
@@ -49,8 +49,7 @@ describe('updateProject', () => {
       to: 'paid',
     })
 
-    expect(result).toEqual({ ok: false, reason: 'invalid_transition' })
-    expect((await getProject(alice.client, project.id))?.status).toBe('estimate')
+    expect(result).toMatchObject({ ok: true, project: { status: 'paid' } })
   })
 
   it('フォームを開いた後に、別の画面で状態が変わっていたら conflict にする', async () => {
@@ -81,7 +80,7 @@ describe('updateProject', () => {
   })
 })
 
-describe('changeProjectStatus(かんばんのボタン)', () => {
+describe('changeProjectStatus(かんばんのボタン・一覧のプルダウン)', () => {
   it('状態だけを変え、ほかの項目は変えない', async () => {
     const project = await createProject(alice.client, input({ title: 'そのまま', amount: 5000 }))
 
@@ -96,16 +95,16 @@ describe('changeProjectStatus(かんばんのボタン)', () => {
     })
   })
 
-  it('飛び越しは、DB に送る前に拒否する', async () => {
+  it('失注から進行のように、どの状態へも変更できる', async () => {
     const project = await createProject(alice.client, input())
+    await changeProjectStatus(alice.client, project.id, { from: 'estimate', to: 'lost' })
 
     const result = await changeProjectStatus(alice.client, project.id, {
-      from: 'estimate',
-      to: 'delivered',
+      from: 'lost',
+      to: 'in_progress',
     })
 
-    expect(result).toEqual({ ok: false, reason: 'invalid_transition' })
-    expect((await getProject(alice.client, project.id))?.status).toBe('estimate')
+    expect(result).toMatchObject({ ok: true, project: { status: 'in_progress' } })
   })
 
   it('画面に表示していた状態が古ければ conflict にし、状態を変えない', async () => {

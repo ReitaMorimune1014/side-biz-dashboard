@@ -22,7 +22,8 @@ export const PROJECT_STATUS_LABELS: Record<ProjectStatus, string> = {
   lost: '失注',
 }
 
-// DB のトリガー(supabase/migrations の check_project_status_transition)と同じ内容にする
+// 状態は、どこからどこへでも変更できる(一覧のプルダウン・編集画面)。
+// 下の FORWARD・BACK は、かんばんに出すボタンの選び方で、変更の制限ではない
 
 // 前に1つ進むか、見積・受注から失注にする
 const FORWARD: Record<ProjectStatus, readonly ProjectStatus[]> = {
@@ -35,7 +36,7 @@ const FORWARD: Record<ProjectStatus, readonly ProjectStatus[]> = {
   lost: [],
 }
 
-// 間違えたときに1つ前へ戻す。失注は、元が見積か受注かが残らないため、どちらにも戻せる
+// 間違えたときに1つ前へ戻す。失注は、元が見積か受注かが残らないため、どちらにも戻す
 const BACK: Record<ProjectStatus, readonly ProjectStatus[]> = {
   estimate: [],
   ordered: ['estimate'],
@@ -50,20 +51,12 @@ export function isProjectStatus(value: unknown): value is ProjectStatus {
   return typeof value === 'string' && (PROJECT_STATUSES as readonly string[]).includes(value)
 }
 
+/** かんばんの「〜にする」ボタン */
 export function forwardStatuses(from: ProjectStatus): readonly ProjectStatus[] {
   return FORWARD[from]
 }
 
+/** かんばんの「〜に戻す」ボタン */
 export function backStatuses(from: ProjectStatus): readonly ProjectStatus[] {
   return BACK[from]
-}
-
-/** 今の状態から移れる状態(進む・戻す)。今の状態は含まない */
-export function nextStatuses(from: ProjectStatus): readonly ProjectStatus[] {
-  return [...FORWARD[from], ...BACK[from]]
-}
-
-/** 同じ状態のまま(状態を変えない更新)は許可する */
-export function canTransition(from: ProjectStatus, to: ProjectStatus): boolean {
-  return from === to || nextStatuses(from).includes(to)
 }

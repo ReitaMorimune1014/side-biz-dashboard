@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/supabase/database.types'
 import type { ProjectInput, StatusChange } from './schema'
-import { canTransition, isProjectStatus, type ProjectStatus } from './status'
+import { isProjectStatus, type ProjectStatus } from './status'
 
 type Client = SupabaseClient<Database>
 
@@ -74,7 +74,7 @@ export async function createProject(client: Client, input: ProjectInput): Promis
 
 export type UpdateProjectResult =
   | { ok: true; project: Project }
-  | { ok: false; reason: 'invalid_transition' | 'conflict' | 'not_found' }
+  | { ok: false; reason: 'conflict' | 'not_found' }
 
 type ProjectUpdate = Database['public']['Tables']['projects']['Update']
 
@@ -88,8 +88,6 @@ async function updateIfStatusIs(
   change: StatusChange,
   values: ProjectUpdate,
 ): Promise<UpdateProjectResult> {
-  if (!canTransition(change.from, change.to)) return { ok: false, reason: 'invalid_transition' }
-
   const { data, error } = await client
     .from('projects')
     .update({ ...values, status: change.to })
@@ -114,7 +112,7 @@ export async function updateProject(
   return updateIfStatusIs(client, id, change, input)
 }
 
-/** 状態だけを変える(かんばんのボタン) */
+/** 状態だけを変える(かんばんのボタン・一覧のプルダウン) */
 export async function changeProjectStatus(
   client: Client,
   id: string,

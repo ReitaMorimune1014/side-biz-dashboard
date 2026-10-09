@@ -3,7 +3,7 @@ import Link from "next/link";
 import { verifySession } from "@/lib/auth/dal";
 import { formatYen } from "@/lib/money";
 import { listProjects } from "@/lib/projects/repository";
-import { PROJECT_STATUS_LABELS, nextStatuses } from "@/lib/projects/status";
+import { PROJECT_STATUS_LABELS } from "@/lib/projects/status";
 import { createClient } from "@/lib/supabase/server";
 import { StatusSelect } from "./status-select";
 import { ViewTabs } from "./view-tabs";
@@ -73,7 +73,6 @@ export default async function ProjectsPage() {
                   projectId={project.id}
                   title={project.title}
                   from={project.status}
-                  options={nextStatuses(project.status)}
                 />
                 <Link
                   href={`/projects/${project.id}/edit`}
