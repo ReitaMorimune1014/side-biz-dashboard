@@ -57,6 +57,26 @@ isOneToOne: false
       referencedColumns: ["id","user_id"]
     }
                   ]
+                },"time_entries": {
+                  Row: {
+                    "created_at": string,"id": string,"memo": string | null,"minutes": number,"project_id": string,"updated_at": string,"user_id": string,"work_date": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"memo"?: string | null,"minutes": number,"project_id": string,"updated_at"?: string,"user_id"?: string,"work_date": string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"memo"?: string | null,"minutes"?: number,"project_id"?: string,"updated_at"?: string,"user_id"?: string,"work_date"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "time_entries_project_id_user_id_fkey"
+      columns: ["project_id","user_id"]
+isOneToOne: false
+      referencedRelation: "projects"
+      referencedColumns: ["id","user_id"]
+    }
+                  ]
                 }
           }
           Views: {

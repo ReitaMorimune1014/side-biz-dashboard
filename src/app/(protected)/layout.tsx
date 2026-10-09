@@ -23,6 +23,11 @@ export default function ProtectedLayout({ children }: LayoutProps<"/">) {
               </Link>
             </li>
             <li>
+              <Link href="/time" prefetch={false}>
+                稼働
+              </Link>
+            </li>
+            <li>
               <Link href="/customers" prefetch={false}>
                 顧客
               </Link>

@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { DeleteButton } from "@/components/delete-button";
 import { verifySession } from "@/lib/auth/dal";
 import { getActiveCustomer } from "@/lib/customers/repository";
 import { isCustomerId } from "@/lib/customers/schema";
 import { createClient } from "@/lib/supabase/server";
 import { deleteCustomerAction, updateCustomerAction } from "../../actions";
 import { CustomerForm } from "../../customer-form";
-import { DeleteButton } from "../../delete-button";
 
 export const metadata: Metadata = {
   title: "顧客を編集",
