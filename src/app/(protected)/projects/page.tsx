@@ -3,8 +3,9 @@ import Link from "next/link";
 import { verifySession } from "@/lib/auth/dal";
 import { formatYen } from "@/lib/money";
 import { listProjects } from "@/lib/projects/repository";
-import { PROJECT_STATUS_LABELS } from "@/lib/projects/status";
+import { PROJECT_STATUS_LABELS, nextStatuses } from "@/lib/projects/status";
 import { createClient } from "@/lib/supabase/server";
+import { StatusSelect } from "./status-select";
 import { ViewTabs } from "./view-tabs";
 
 export const metadata: Metadata = {
@@ -66,13 +67,22 @@ export default async function ProjectsPage() {
                   </div>
                 </dl>
               </div>
-              <Link
-                href={`/projects/${project.id}/edit`}
-                aria-label={`「${project.title}」を編集`}
-                className="shrink-0 self-start rounded-md border border-zinc-400 px-3 py-1.5 text-sm font-medium"
-              >
-                編集
-              </Link>
+              <div className="flex shrink-0 flex-col items-start gap-2 sm:items-end">
+                <StatusSelect
+                  key={`${project.id}-${project.status}`}
+                  projectId={project.id}
+                  title={project.title}
+                  from={project.status}
+                  options={nextStatuses(project.status)}
+                />
+                <Link
+                  href={`/projects/${project.id}/edit`}
+                  aria-label={`「${project.title}」を編集`}
+                  className="rounded-md border border-zinc-400 px-3 py-1.5 text-sm font-medium"
+                >
+                  編集
+                </Link>
+              </div>
             </li>
           ))}
         </ul>

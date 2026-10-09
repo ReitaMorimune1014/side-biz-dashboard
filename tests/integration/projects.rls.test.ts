@@ -128,9 +128,19 @@ describe('状態遷移(DB のトリガー)', () => {
     expect(error?.code).toBe(CHECK_VIOLATION)
   })
 
-  it('戻すことはできない', async () => {
+  it('1つ前には戻せる', async () => {
     const project = await createProject(alice, aliceCustomerId)
     await setStatus(alice, project.id, 'ordered')
+
+    const { data, error } = await setStatus(alice, project.id, 'estimate')
+    expect(error).toBeNull()
+    expect(data).toEqual([{ status: 'estimate' }])
+  })
+
+  it('2つ前には、一度に戻せない', async () => {
+    const project = await createProject(alice, aliceCustomerId)
+    await setStatus(alice, project.id, 'ordered')
+    await setStatus(alice, project.id, 'in_progress')
 
     const { error } = await setStatus(alice, project.id, 'estimate')
     expect(error?.code).toBe(CHECK_VIOLATION)
@@ -145,11 +155,20 @@ describe('状態遷移(DB のトリガー)', () => {
     expect(error?.code).toBe(CHECK_VIOLATION)
   })
 
-  it('失注からは、どこにも進めない', async () => {
+  it.each(['estimate', 'ordered'])('失注から %s には戻せる', async (to) => {
     const project = await createProject(alice, aliceCustomerId)
     expect((await setStatus(alice, project.id, 'lost')).error).toBeNull()
 
-    const { error } = await setStatus(alice, project.id, 'ordered')
+    const { data, error } = await setStatus(alice, project.id, to)
+    expect(error).toBeNull()
+    expect(data).toEqual([{ status: to }])
+  })
+
+  it('失注から進行には移れない', async () => {
+    const project = await createProject(alice, aliceCustomerId)
+    expect((await setStatus(alice, project.id, 'lost')).error).toBeNull()
+
+    const { error } = await setStatus(alice, project.id, 'in_progress')
     expect(error?.code).toBe(CHECK_VIOLATION)
   })
 

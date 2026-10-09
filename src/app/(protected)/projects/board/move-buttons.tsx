@@ -1,31 +1,31 @@
 "use client";
 
-import { useActionState } from "react";
 import { PROJECT_STATUS_LABELS, type ProjectStatus } from "@/lib/projects/status";
-import { moveProjectAction, type MoveProjectState } from "../actions";
+import { useMoveProject } from "../use-move-project";
 
 type Props = {
   projectId: string;
   title: string;
   from: ProjectStatus;
-  options: readonly ProjectStatus[];
+  forward: readonly ProjectStatus[];
+  back: readonly ProjectStatus[];
 };
 
-const initialState: MoveProjectState = { status: "idle" };
+const primaryClass =
+  "rounded-md bg-zinc-900 px-2.5 py-1 text-xs font-medium text-white disabled:opacity-60";
+const secondaryClass =
+  "rounded-md border border-zinc-400 px-2.5 py-1 text-xs font-medium text-zinc-700 disabled:opacity-60";
+const backClass = "px-1 py-1 text-xs text-zinc-600 underline disabled:opacity-60";
 
-export function MoveButtons({ projectId, title, from, options }: Props) {
-  const [state, formAction, pending] = useActionState(
-    async (_prev: MoveProjectState, formData: FormData) =>
-      moveProjectAction(projectId, from, String(formData.get("to") ?? "")),
-    initialState,
-  );
+export function MoveButtons({ projectId, title, from, forward, back }: Props) {
+  const [state, formAction, pending] = useMoveProject(projectId, from);
 
-  if (options.length === 0) return null;
+  if (forward.length === 0 && back.length === 0) return null;
 
   return (
     <form action={formAction} className="flex flex-col gap-2">
-      <div className="flex flex-wrap gap-2">
-        {options.map((to) => (
+      <div className="flex flex-wrap items-center gap-2">
+        {forward.map((to) => (
           <button
             key={to}
             type="submit"
@@ -33,13 +33,22 @@ export function MoveButtons({ projectId, title, from, options }: Props) {
             value={to}
             disabled={pending}
             aria-label={`「${title}」を${PROJECT_STATUS_LABELS[to]}にする`}
-            className={
-              to === "lost"
-                ? "rounded-md border border-zinc-400 px-2.5 py-1 text-xs font-medium text-zinc-700 disabled:opacity-60"
-                : "rounded-md bg-zinc-900 px-2.5 py-1 text-xs font-medium text-white disabled:opacity-60"
-            }
+            className={to === "lost" ? secondaryClass : primaryClass}
           >
             {PROJECT_STATUS_LABELS[to]}にする
+          </button>
+        ))}
+        {back.map((to) => (
+          <button
+            key={to}
+            type="submit"
+            name="to"
+            value={to}
+            disabled={pending}
+            aria-label={`「${title}」を${PROJECT_STATUS_LABELS[to]}に戻す`}
+            className={backClass}
+          >
+            {PROJECT_STATUS_LABELS[to]}に戻す
           </button>
         ))}
       </div>

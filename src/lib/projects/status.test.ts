@@ -1,14 +1,16 @@
 import { describe, expect, it } from 'vitest'
 import {
   PROJECT_STATUSES,
+  backStatuses,
   canTransition,
+  forwardStatuses,
   isProjectStatus,
-  nextStatuses,
   type ProjectStatus,
 } from './status'
 
 // 許可する遷移を、全てここに列挙する。ここにない組み合わせは、すべて拒否されるべき
 const ALLOWED: ReadonlyArray<[ProjectStatus, ProjectStatus]> = [
+  // 進む
   ['estimate', 'ordered'],
   ['estimate', 'lost'],
   ['ordered', 'in_progress'],
@@ -16,6 +18,14 @@ const ALLOWED: ReadonlyArray<[ProjectStatus, ProjectStatus]> = [
   ['in_progress', 'delivered'],
   ['delivered', 'invoiced'],
   ['invoiced', 'paid'],
+  // 1つ前に戻す
+  ['ordered', 'estimate'],
+  ['in_progress', 'ordered'],
+  ['delivered', 'in_progress'],
+  ['invoiced', 'delivered'],
+  ['paid', 'invoiced'],
+  ['lost', 'estimate'],
+  ['lost', 'ordered'],
 ]
 
 const isAllowed = (from: ProjectStatus, to: ProjectStatus) =>
@@ -51,9 +61,22 @@ describe('業務ルール', () => {
     expect(from).toEqual(['estimate', 'ordered'])
   })
 
-  it('入金済と失注からは、どこにも進めない', () => {
-    expect(nextStatuses('paid')).toEqual([])
-    expect(nextStatuses('lost')).toEqual([])
+  it('入金済と失注からは、前に進めない', () => {
+    expect(forwardStatuses('paid')).toEqual([])
+    expect(forwardStatuses('lost')).toEqual([])
+  })
+
+  it('見積より前には戻せない', () => {
+    expect(backStatuses('estimate')).toEqual([])
+  })
+
+  it('2つ以上前には、一度に戻せない', () => {
+    expect(canTransition('in_progress', 'estimate')).toBe(false)
+    expect(canTransition('paid', 'delivered')).toBe(false)
+  })
+
+  it('失注からは、見積と受注にだけ戻せる', () => {
+    expect(backStatuses('lost')).toEqual(['estimate', 'ordered'])
   })
 })
 

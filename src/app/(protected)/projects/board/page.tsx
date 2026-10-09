@@ -4,7 +4,11 @@ import { verifySession } from "@/lib/auth/dal";
 import { formatYen } from "@/lib/money";
 import { groupProjectsByStatus } from "@/lib/projects/board";
 import { listProjects } from "@/lib/projects/repository";
-import { PROJECT_STATUS_LABELS, nextStatuses } from "@/lib/projects/status";
+import {
+  PROJECT_STATUS_LABELS,
+  backStatuses,
+  forwardStatuses,
+} from "@/lib/projects/status";
 import { createClient } from "@/lib/supabase/server";
 import { ViewTabs } from "../view-tabs";
 import { MoveButtons } from "./move-buttons";
@@ -76,7 +80,8 @@ export default async function ProjectBoardPage() {
                         projectId={project.id}
                         title={project.title}
                         from={project.status}
-                        options={nextStatuses(project.status)}
+                        forward={forwardStatuses(project.status)}
+                        back={backStatuses(project.status)}
                       />
                     </li>
                   ))}
