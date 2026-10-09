@@ -18,8 +18,8 @@ export default async function ProjectBoardPage() {
   const columns = groupProjectsByStatus(await listProjects(await createClient()));
 
   return (
-    <main className="flex w-full flex-1 flex-col gap-6 py-10">
-      <div className="mx-auto flex w-full max-w-3xl flex-wrap items-center justify-between gap-4 px-4">
+    <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-4 py-10">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold">案件</h1>
         <div className="flex items-center gap-3">
           <ViewTabs current="/projects/board" />
@@ -32,16 +32,16 @@ export default async function ProjectBoardPage() {
         </div>
       </div>
 
-      <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-4">
+      <div className="flex flex-col gap-4">
         {columns.map((column) => {
           const headingId = `column-${column.status}`;
           return (
             <section
               key={column.status}
               aria-labelledby={headingId}
-              className="flex w-64 shrink-0 snap-start flex-col gap-3 rounded-md bg-zinc-50 p-3"
+              className="flex flex-col gap-3 rounded-md bg-zinc-50 p-3"
             >
-              <h2 id={headingId} className="flex items-center justify-between text-sm font-semibold">
+              <h2 id={headingId} className="flex items-center gap-2 text-sm font-semibold">
                 {PROJECT_STATUS_LABELS[column.status]}
                 <span className="rounded-full bg-zinc-200 px-2 text-xs font-medium text-zinc-800">
                   {column.items.length}
@@ -50,9 +50,9 @@ export default async function ProjectBoardPage() {
               </h2>
 
               {column.items.length === 0 ? (
-                <p className="py-4 text-center text-xs text-zinc-500">案件はありません</p>
+                <p className="text-xs text-zinc-500">案件はありません</p>
               ) : (
-                <ul className="flex flex-col gap-2">
+                <ul className="grid gap-2 sm:grid-cols-2">
                   {column.items.map((project) => (
                     <li
                       key={project.id}
