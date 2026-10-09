@@ -23,14 +23,14 @@ export function BarChart({ buckets, caption }: Props) {
 
   return (
     <figure className="flex flex-col gap-2">
-      <div aria-hidden="true" className="flex h-48 items-end gap-0.5 border-b border-zinc-300 pt-5">
+      <div aria-hidden="true" className="flex h-48 items-end gap-0.5 border-b border-zinc-300 px-4 pt-5">
         {buckets.map((bucket) => {
           const percent = (bucket.amount / max) * 100;
           return (
             <div
               key={bucket.key}
               title={`${bucket.label}: ${formatYen(bucket.amount)}(${bucket.count}件)`}
-              className="relative flex h-full flex-1 items-end"
+              className="relative flex h-full flex-1 items-end justify-center"
             >
               {showAmounts && bucket.amount > 0 && (
                 <span
@@ -41,14 +41,14 @@ export function BarChart({ buckets, caption }: Props) {
                 </span>
               )}
               <div
-                className="w-full rounded-t bg-green-600"
+                className="w-full max-w-16 rounded-t bg-green-600"
                 style={{ height: bucket.amount > 0 ? `max(${percent}%, 2px)` : 0 }}
               />
             </div>
           );
         })}
       </div>
-      <div aria-hidden="true" className="flex gap-0.5">
+      <div aria-hidden="true" className="flex gap-0.5 px-4">
         {buckets.map((bucket, index) => (
           <span key={bucket.key} className="flex-1 text-center text-[10px] text-zinc-600">
             {showTick(index, buckets.length) ? bucket.label : ""}

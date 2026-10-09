@@ -121,7 +121,8 @@ export type BucketSlot = { key: string; label: string }
 
 /**
  * グラフの棒の並び。日ごとは月の日数、月ごとは12か月、
- * 年ごとは、売上のある最初の年から今年(か売上のある最後の年)まで
+ * 年ごとは、売上のある最初の年から今年(か売上のある最後の年)までに、前後1年ずつを足す。
+ * 1本だけで横幅を埋めないように、前後の年を空の棒として見せる
  */
 export function bucketSlots(period: Period, earnedYears: readonly number[], thisYear: number): BucketSlot[] {
   switch (period.view) {
@@ -138,8 +139,8 @@ export function bucketSlots(period: Period, earnedYears: readonly number[], this
         label: `${i + 1}月`,
       }))
     case 'year': {
-      const first = Math.min(thisYear, ...earnedYears)
-      const last = Math.max(thisYear, ...earnedYears)
+      const first = Math.min(thisYear, ...earnedYears) - 1
+      const last = Math.max(thisYear, ...earnedYears) + 1
       return Array.from({ length: last - first + 1 }, (_, i) => ({
         key: String(first + i),
         label: `${first + i}年`,

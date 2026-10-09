@@ -43,8 +43,10 @@ describe('summarizeEarnings', () => {
 
     expect(summary.total).toBe(270000)
     expect(summary.buckets).toEqual([
+      { key: '2024', label: '2024年', amount: 0, count: 0 },
       { key: '2025', label: '2025年', amount: 70000, count: 1 },
       { key: '2026', label: '2026年', amount: 200000, count: 4 },
+      { key: '2027', label: '2027年', amount: 0, count: 0 },
     ])
   })
 
