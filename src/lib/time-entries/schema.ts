@@ -1,21 +1,11 @@
 import { z } from 'zod'
+import { wholeNumber } from '@/lib/form-number'
 
 // DB の check 制約(supabase/migrations の time_entries)と同じ値にする
 export const TIME_ENTRY_MINUTES_MAX = 1440
 export const TIME_ENTRY_MEMO_MAX = 2000
 
 const HOURS_MAX = TIME_ENTRY_MINUTES_MAX / 60
-
-/** 空欄は 0 として読む整数 */
-function wholeNumber(max: number, message: string) {
-  return z
-    .string()
-    .trim()
-    .transform((value) => (value === '' ? '0' : value))
-    .pipe(z.string().regex(/^\d{1,4}$/, { error: message }))
-    .transform(Number)
-    .pipe(z.number().max(max, { error: message }))
-}
 
 const timeEntryInputSchema = z
   .object({

@@ -10,7 +10,7 @@ export default function ProtectedLayout({ children }: LayoutProps<"/">) {
           aria-label="メイン"
           className="mx-auto flex w-full max-w-3xl items-center justify-between gap-4 px-4 py-3"
         >
-          <ul className="flex gap-4 text-sm font-medium">
+          <ul className="flex flex-wrap gap-x-4 gap-y-1 text-sm font-medium">
             <li>
               {/* ログイン直後に表示されるため、先読みしない */}
               <Link href="/dashboard" prefetch={false}>
@@ -30,6 +30,11 @@ export default function ProtectedLayout({ children }: LayoutProps<"/">) {
             <li>
               <Link href="/customers" prefetch={false}>
                 顧客
+              </Link>
+            </li>
+            <li>
+              <Link href="/settings" prefetch={false}>
+                設定
               </Link>
             </li>
           </ul>

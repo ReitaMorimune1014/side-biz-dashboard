@@ -48,6 +48,21 @@ export async function listTimeEntries(client: Client): Promise<TimeEntry[]> {
   return data.map(toTimeEntry)
 }
 
+/** start〜end(どちらも含む)の日付の稼働の合計(分) */
+export async function sumMinutesBetween(
+  client: Client,
+  start: string,
+  end: string,
+): Promise<number> {
+  const { data, error } = await client
+    .from('time_entries')
+    .select('minutes')
+    .gte('work_date', start)
+    .lte('work_date', end)
+  if (error) throw error
+  return data.reduce((sum, row) => sum + row.minutes, 0)
+}
+
 export async function getTimeEntry(client: Client, id: string): Promise<TimeEntry | null> {
   const { data, error } = await client
     .from('time_entries')
