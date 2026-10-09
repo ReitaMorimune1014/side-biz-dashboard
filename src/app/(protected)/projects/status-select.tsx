@@ -37,7 +37,7 @@ export function StatusSelect({ projectId, title, from }: Props) {
             value={selected}
             onChange={(e) => setSelected(e.target.value as ProjectStatus)}
             disabled={pending}
-            className="rounded-md border border-zinc-400 px-2 py-1 text-sm"
+            className="w-24 rounded-md border border-zinc-400 px-2 py-1 text-center text-sm [text-align-last:center]"
           >
             {PROJECT_STATUSES.map((status) => (
               <option key={status} value={status}>
