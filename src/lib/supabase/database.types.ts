@@ -37,6 +37,26 @@ export type Database = {
                   Relationships: [
                     
                   ]
+                },"projects": {
+                  Row: {
+                    "amount": number,"created_at": string,"customer_id": string,"due_date": string | null,"id": string,"memo": string | null,"status": string,"title": string,"updated_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "amount": number,"created_at"?: string,"customer_id": string,"due_date"?: string | null,"id"?: string,"memo"?: string | null,"status"?: string,"title": string,"updated_at"?: string,"user_id"?: string
+                  }
+                  Update: {
+                    "amount"?: number,"created_at"?: string,"customer_id"?: string,"due_date"?: string | null,"id"?: string,"memo"?: string | null,"status"?: string,"title"?: string,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "projects_customer_id_user_id_fkey"
+      columns: ["customer_id","user_id"]
+isOneToOne: false
+      referencedRelation: "customers"
+      referencedColumns: ["id","user_id"]
+    }
+                  ]
                 }
           }
           Views: {
