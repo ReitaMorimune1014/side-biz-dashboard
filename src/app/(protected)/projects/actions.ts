@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth/dal";
 import { getActiveCustomer } from "@/lib/customers/repository";
 import {
+  changeProjectStatus,
   createProject,
   getProject,
   updateProject,
@@ -15,10 +16,11 @@ import {
   parseStatusChange,
   type ProjectFieldErrors,
 } from "@/lib/projects/schema";
-import { PROJECT_STATUS_LABELS } from "@/lib/projects/status";
+import { PROJECT_STATUS_LABELS, isProjectStatus } from "@/lib/projects/status";
 import { createClient } from "@/lib/supabase/server";
 
 const PROJECTS_PATH = "/projects";
+const BOARD_PATH = "/projects/board";
 
 const FIELDS = ["customer_id", "title", "amount", "due_date", "memo", "status"] as const;
 
@@ -78,6 +80,7 @@ export async function createProjectAction(
   }
 
   revalidatePath(PROJECTS_PATH);
+  revalidatePath(BOARD_PATH);
   redirect(PROJECTS_PATH);
 }
 
@@ -134,5 +137,49 @@ export async function updateProjectAction(
   }
 
   revalidatePath(PROJECTS_PATH);
+  revalidatePath(BOARD_PATH);
   redirect(PROJECTS_PATH);
+}
+
+export type MoveProjectState = { status: "idle" } | { status: "error"; message: string };
+
+const MOVE_CONFLICT = "ほかの画面で状態が変わりました。画面を読み込み直してください";
+
+/** かんばんのボタン用。id・from・to は画面から来るので、形式とルールをここで確かめ直す */
+export async function moveProjectAction(
+  id: string,
+  from: string,
+  to: string,
+): Promise<MoveProjectState> {
+  await requireUser();
+
+  if (!isProjectId(id) || !isProjectStatus(from) || !isProjectStatus(to)) {
+    return { status: "error", message: NOT_FOUND };
+  }
+
+  let result;
+  try {
+    result = await changeProjectStatus(await createClient(), id, { from, to });
+  } catch (e) {
+    console.error("changeProjectStatus failed:", e);
+    return { status: "error", message: SAVE_FAILED };
+  }
+
+  if (!result.ok) {
+    switch (result.reason) {
+      case "invalid_transition":
+        return {
+          status: "error",
+          message: `「${PROJECT_STATUS_LABELS[from]}」から「${PROJECT_STATUS_LABELS[to]}」には移動できません`,
+        };
+      case "conflict":
+        return { status: "error", message: MOVE_CONFLICT };
+      case "not_found":
+        return { status: "error", message: NOT_FOUND };
+    }
+  }
+
+  revalidatePath(PROJECTS_PATH);
+  revalidatePath(BOARD_PATH);
+  return { status: "idle" };
 }
