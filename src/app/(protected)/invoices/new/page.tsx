@@ -27,13 +27,18 @@ export default async function NewInvoicePage() {
           </Link>
         </div>
       ) : (
-        <InvoiceForm
-          action={createInvoiceAction}
-          projects={toInvoiceProjectOptions(projects)}
-          defaultValues={{ issued_on: todayInTokyo() }}
-          submitLabel="作成する"
-          prefillAmount
-        />
+        <>
+          <p className="text-sm text-zinc-700">
+            案件が納品・請求済・入金済のときは、請求に合わせて案件の状態が自動で変わります(未入金があれば請求済、すべて入金済なら入金済)。
+          </p>
+          <InvoiceForm
+            action={createInvoiceAction}
+            projects={toInvoiceProjectOptions(projects)}
+            defaultValues={{ issued_on: todayInTokyo() }}
+            submitLabel="作成する"
+            prefillAmount
+          />
+        </>
       )}
     </main>
   );

@@ -16,6 +16,7 @@ import {
   parsePaidOn,
   type InvoiceFieldErrors,
 } from "@/lib/invoices/schema";
+import { syncProjectStatus } from "@/lib/invoices/sync";
 import { getProject } from "@/lib/projects/repository";
 import { createClient } from "@/lib/supabase/server";
 
@@ -55,6 +56,25 @@ function error(
   return { status: "error", fieldErrors, message, values };
 }
 
+type Client = Awaited<ReturnType<typeof createClient>>;
+
+/**
+ * 請求を変えた後に、案件の状態(請求済・入金済)を合わせる。
+ * 請求の保存は済んでいるので、ここで失敗しても請求の操作は失敗にしない
+ */
+async function syncProjects(supabase: Client, projectIds: string[]) {
+  for (const projectId of new Set(projectIds)) {
+    try {
+      await syncProjectStatus(supabase, projectId);
+    } catch (e) {
+      console.error("syncProjectStatus failed:", projectId, e);
+    }
+  }
+  revalidatePath(INVOICES_PATH);
+  revalidatePath("/projects");
+  revalidatePath("/projects/board");
+}
+
 export async function createInvoiceAction(
   _prevState: InvoiceFormState,
   formData: FormData,
@@ -76,7 +96,7 @@ export async function createInvoiceAction(
     return error(values, {}, SAVE_FAILED);
   }
 
-  revalidatePath(INVOICES_PATH);
+  await syncProjects(supabase, [parsed.data.project_id]);
   redirect(INVOICES_PATH);
 }
 
@@ -94,19 +114,21 @@ export async function updateInvoiceAction(
   if (!parsed.success) return error(values, parsed.fieldErrors);
 
   const supabase = await createClient();
-  let updated;
+  let before;
   try {
+    before = await getInvoice(supabase, id);
+    if (!before) return error(values, {}, NOT_FOUND);
     if (!(await getProject(supabase, parsed.data.project_id))) {
       return error(values, { project_id: PROJECT_NOT_FOUND });
     }
-    updated = await updateInvoice(supabase, id, parsed.data);
+    if (!(await updateInvoice(supabase, id, parsed.data))) return error(values, {}, NOT_FOUND);
   } catch (e) {
     console.error("updateInvoice failed:", e);
     return error(values, {}, SAVE_FAILED);
   }
-  if (!updated) return error(values, {}, NOT_FOUND);
 
-  revalidatePath(INVOICES_PATH);
+  // 案件を付け替えたら、元の案件も合わせ直す
+  await syncProjects(supabase, [before.project_id, parsed.data.project_id]);
   redirect(INVOICES_PATH);
 }
 
@@ -114,8 +136,13 @@ export async function deleteInvoiceAction(id: string): Promise<void> {
   await requireUser();
 
   if (isInvoiceId(id)) {
-    const deleted = await deleteInvoice(await createClient(), id);
-    if (!deleted) console.warn("deleteInvoice: not found", id);
+    const supabase = await createClient();
+    const invoice = await getInvoice(supabase, id);
+    if (invoice && (await deleteInvoice(supabase, id))) {
+      await syncProjects(supabase, [invoice.project_id]);
+    } else {
+      console.warn("deleteInvoice: not found", id);
+    }
   }
 
   revalidatePath(INVOICES_PATH);
@@ -134,6 +161,7 @@ export async function recordPaymentAction(
   if (!isInvoiceId(id)) return { status: "error", message: NOT_FOUND };
 
   const supabase = await createClient();
+  let projectId;
   try {
     const invoice = await getInvoice(supabase, id);
     if (!invoice) return { status: "error", message: NOT_FOUND };
@@ -144,12 +172,13 @@ export async function recordPaymentAction(
     if (!(await setInvoicePaidOn(supabase, id, paidOn.data))) {
       return { status: "error", message: NOT_FOUND };
     }
+    projectId = invoice.project_id;
   } catch (e) {
     console.error("recordPayment failed:", e);
     return { status: "error", message: SAVE_FAILED };
   }
 
-  revalidatePath(INVOICES_PATH);
+  await syncProjects(supabase, [projectId]);
   return { status: "idle" };
 }
 
@@ -158,8 +187,13 @@ export async function markUnpaidAction(id: string): Promise<void> {
   await requireUser();
 
   if (isInvoiceId(id)) {
-    const updated = await setInvoicePaidOn(await createClient(), id, null);
-    if (!updated) console.warn("markUnpaid: not found", id);
+    const supabase = await createClient();
+    const updated = await setInvoicePaidOn(supabase, id, null);
+    if (updated) {
+      await syncProjects(supabase, [updated.project_id]);
+    } else {
+      console.warn("markUnpaid: not found", id);
+    }
   }
 
   revalidatePath(INVOICES_PATH);

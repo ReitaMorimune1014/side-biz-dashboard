@@ -55,6 +55,19 @@ export async function listInvoices(client: Client): Promise<Invoice[]> {
   return data.map(toInvoice)
 }
 
+/** 案件の状態を決め直すために、その案件の請求の入金日だけを読む */
+export async function listProjectInvoicePayments(
+  client: Client,
+  projectId: string,
+): Promise<{ paid_on: string | null }[]> {
+  const { data, error } = await client
+    .from('invoices')
+    .select('paid_on')
+    .eq('project_id', projectId)
+  if (error) throw error
+  return data
+}
+
 export async function getInvoice(client: Client, id: string): Promise<Invoice | null> {
   const { data, error } = await client.from('invoices').select(COLUMNS).eq('id', id).maybeSingle()
   if (error) throw error
