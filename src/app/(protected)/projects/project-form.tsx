@@ -2,13 +2,22 @@
 
 import Link from "next/link";
 import { useActionState, type ReactNode } from "react";
-import { PROJECT_MEMO_MAX, PROJECT_TITLE_MAX } from "@/lib/projects/schema";
+import { useClientValidation } from "@/components/use-client-validation";
+import { fieldErrorsOf } from "@/lib/forms/form-values";
+import {
+  PROJECT_MEMO_MAX,
+  PROJECT_TITLE_MAX,
+  parseProjectEdit,
+  parseProjectInput,
+  readProjectForm,
+  type ProjectFormValues,
+} from "@/lib/projects/schema";
 import {
   PROJECT_STATUSES,
   PROJECT_STATUS_LABELS,
   type ProjectStatus,
 } from "@/lib/projects/status";
-import type { ProjectFormState, ProjectFormValues } from "./actions";
+import type { ProjectFormState } from "./actions";
 
 type CustomerOption = { id: string; name: string; deleted?: boolean };
 
@@ -60,6 +69,11 @@ function Field({
   );
 }
 
+const validateCreate = (formData: FormData) =>
+  fieldErrorsOf(parseProjectInput(readProjectForm(formData)));
+const validateEdit = (formData: FormData) =>
+  fieldErrorsOf(parseProjectEdit(readProjectForm(formData)));
+
 function describedBy(id: string, error?: string, hint?: string) {
   if (error) return `${id}-error`;
   if (hint) return `${id}-hint`;
@@ -68,16 +82,27 @@ function describedBy(id: string, error?: string, hint?: string) {
 
 export function ProjectForm({ action, customers, defaultValues, status, submitLabel }: Props) {
   const [state, formAction, pending] = useActionState(action, initialState);
+  const { formRef, errors, onSubmit, onChange } = useClientValidation({
+    validate: status ? validateEdit : validateCreate,
+    serverState: state,
+    serverErrors: state.status === "error" ? state.fieldErrors : {},
+  });
 
   const values = state.status === "error" ? state.values : defaultValues;
-  const errors = state.status === "error" ? state.fieldErrors : {};
   const message = state.status === "error" ? state.message : undefined;
   const amountHint = "税込の円。整数で入力します(例: 120000)";
   const earnedOnHint =
     "納品・請求済・入金済のとき、この日に金額を売上として数えます。空なら、納品にした日(今日)になります。納品より前の状態では使いません";
 
   return (
-    <form action={formAction} className="flex flex-col gap-5" noValidate>
+    <form
+      ref={formRef}
+      action={formAction}
+      onSubmit={onSubmit}
+      onChange={onChange}
+      className="flex flex-col gap-5"
+      noValidate
+    >
       {message && (
         <p role="alert" className="rounded-md bg-red-50 p-3 text-sm text-red-800">
           {message}

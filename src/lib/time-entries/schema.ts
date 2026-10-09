@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { wholeNumber } from '@/lib/form-number'
+import { readFields } from '@/lib/forms/form-values'
 
 // DB の check 制約(supabase/migrations の time_entries)と同じ値にする
 export const TIME_ENTRY_MINUTES_MAX = 1440
@@ -46,6 +47,18 @@ const FIELD_OF: Record<string, TimeEntryField> = {
   memo: 'memo',
 }
 
+/** 入力欄の name から、エラーを出す項目を決める */
+export function timeEntryFieldOf(name: string): TimeEntryField | undefined {
+  return Object.hasOwn(FIELD_OF, name) ? FIELD_OF[name] : undefined
+}
+
+export const TIME_ENTRY_FORM_FIELDS = ['project_id', 'work_date', 'hours', 'minutes', 'memo'] as const
+export type TimeEntryFormValues = Partial<Record<(typeof TIME_ENTRY_FORM_FIELDS)[number], string>>
+
+export function readTimeEntryForm(formData: FormData): TimeEntryFormValues {
+  return readFields(formData, TIME_ENTRY_FORM_FIELDS)
+}
+
 const asString = (value: unknown) => (typeof value === 'string' ? value : '')
 
 export function parseTimeEntryInput(
@@ -63,7 +76,7 @@ export function parseTimeEntryInput(
   const fieldErrors: TimeEntryFieldErrors = {}
   for (const issue of result.error.issues) {
     const path = issue.path[0]
-    const field = typeof path === 'string' ? FIELD_OF[path] : undefined
+    const field = typeof path === 'string' ? timeEntryFieldOf(path) : undefined
     if (field && !(field in fieldErrors)) fieldErrors[field] = issue.message
   }
   return { success: false, fieldErrors }

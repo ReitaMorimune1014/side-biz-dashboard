@@ -12,10 +12,11 @@ import {
 } from "@/lib/projects/repository";
 import {
   isProjectId,
-  parseEarnedOn,
+  parseProjectEdit,
   parseProjectInput,
-  parseStatusChange,
+  readProjectForm,
   type ProjectFieldErrors,
+  type ProjectFormValues,
 } from "@/lib/projects/schema";
 import { isProjectStatus } from "@/lib/projects/status";
 import { createClient } from "@/lib/supabase/server";
@@ -31,18 +32,6 @@ function revalidateProjectPages() {
   revalidatePath(MONEY_PATH);
 }
 
-const FIELDS = [
-  "customer_id",
-  "title",
-  "amount",
-  "due_date",
-  "memo",
-  "status",
-  "earned_on",
-] as const;
-
-export type ProjectFormValues = Partial<Record<(typeof FIELDS)[number], string>>;
-
 export type ProjectFormState =
   | { status: "idle" }
   | {
@@ -51,15 +40,6 @@ export type ProjectFormState =
       message?: string;
       values: ProjectFormValues;
     };
-
-function readForm(formData: FormData): ProjectFormValues & { expected_status?: string } {
-  const values: Record<string, string> = {};
-  for (const field of [...FIELDS, "expected_status"]) {
-    const value = formData.get(field);
-    if (typeof value === "string") values[field] = value;
-  }
-  return values;
-}
 
 const SAVE_FAILED = "保存できませんでした。時間をおいて、もう一度お試しください";
 const NOT_FOUND = "案件が見つかりません";
@@ -81,7 +61,7 @@ export async function createProjectAction(
 ): Promise<ProjectFormState> {
   await requireUser();
 
-  const values = readForm(formData);
+  const values = readProjectForm(formData);
   const parsed = parseProjectInput(values);
   if (!parsed.success) return error(values, parsed.fieldErrors);
 
@@ -107,19 +87,12 @@ export async function updateProjectAction(
 ): Promise<ProjectFormState> {
   await requireUser();
 
-  const values = readForm(formData);
+  const values = readProjectForm(formData);
   if (!isProjectId(id)) return error(values, {}, NOT_FOUND);
 
-  const input = parseProjectInput(values);
-  const change = parseStatusChange(values);
-  const earnedOn = parseEarnedOn(values);
-  if (!input.success || !change.success || !earnedOn.success) {
-    return error(values, {
-      ...(input.success ? {} : input.fieldErrors),
-      ...(change.success ? {} : change.fieldErrors),
-      ...(earnedOn.success ? {} : earnedOn.fieldErrors),
-    });
-  }
+  const parsed = parseProjectEdit(values);
+  if (!parsed.success) return error(values, parsed.fieldErrors);
+  const { input, change, earnedOn } = parsed.data;
 
   const supabase = await createClient();
   let result;
@@ -128,12 +101,12 @@ export async function updateProjectAction(
     if (!current) return error(values, {}, NOT_FOUND);
 
     // 論理削除した顧客の案件は、顧客を変えない限りそのまま編集できる
-    const customerChanged = input.data.customer_id !== current.customer_id;
-    if (customerChanged && !(await getActiveCustomer(supabase, input.data.customer_id))) {
+    const customerChanged = input.customer_id !== current.customer_id;
+    if (customerChanged && !(await getActiveCustomer(supabase, input.customer_id))) {
       return error(values, { customer_id: CUSTOMER_REQUIRED });
     }
 
-    result = await updateProject(supabase, id, input.data, change.data, earnedOn.data);
+    result = await updateProject(supabase, id, input, change, earnedOn);
   } catch (e) {
     console.error("updateProject failed:", e);
     return error(values, {}, SAVE_FAILED);

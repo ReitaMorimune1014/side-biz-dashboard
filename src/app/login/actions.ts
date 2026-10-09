@@ -1,6 +1,6 @@
 "use server";
 
-import { isValidEmail } from "@/lib/auth/email";
+import { parseLoginEmail, type LoginFieldErrors } from "@/lib/auth/email";
 import { getSafeRedirectPath } from "@/lib/auth/redirect";
 import { getSiteUrl } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
@@ -8,16 +8,19 @@ import { createClient } from "@/lib/supabase/server";
 export type LoginState =
   | { status: "idle" }
   | { status: "sent"; email: string }
-  | { status: "error"; message: string };
+  | { status: "error"; fieldErrors: LoginFieldErrors; message?: string; email: string };
 
 export async function sendMagicLink(
   _prevState: LoginState,
   formData: FormData,
 ): Promise<LoginState> {
-  const email = String(formData.get("email") ?? "").trim();
-  if (!isValidEmail(email)) {
-    return { status: "error", message: "メールアドレスの形式が正しくありません" };
+  const raw = formData.get("email");
+  const typed = typeof raw === "string" ? raw : "";
+  const parsed = parseLoginEmail(typed);
+  if (!parsed.success) {
+    return { status: "error", fieldErrors: parsed.fieldErrors, email: typed };
   }
+  const email = parsed.data;
 
   const nextValue = formData.get("next");
   const next = getSafeRedirectPath(typeof nextValue === "string" ? nextValue : null);
@@ -34,7 +37,9 @@ export async function sendMagicLink(
     console.error("signInWithOtp failed:", error.status, error.message);
     return {
       status: "error",
+      fieldErrors: {},
       message: "メールを送れませんでした。時間をおいて、もう一度お試しください",
+      email,
     };
   }
 

@@ -1,12 +1,16 @@
 "use client";
 
 import { useActionState } from "react";
-import { WEEKDAY_LABELS, type Weekday } from "@/lib/weekly/week";
+import { useClientValidation } from "@/components/use-client-validation";
+import { fieldErrorsOf } from "@/lib/forms/form-values";
 import {
-  saveSettingsAction,
-  type SettingsFormState,
+  parseSettingsInput,
+  readSettingsForm,
+  settingsFieldOf,
   type SettingsFormValues,
-} from "./actions";
+} from "@/lib/settings/schema";
+import { WEEKDAY_LABELS, type Weekday } from "@/lib/weekly/week";
+import { saveSettingsAction, type SettingsFormState } from "./actions";
 
 const initialState: SettingsFormState = { status: "idle" };
 
@@ -14,15 +18,30 @@ const inputClass = "rounded-md border border-zinc-400 px-3 py-2";
 
 const WEEKDAYS: Weekday[] = [1, 2, 3, 4, 5, 6, 0];
 
+const validate = (formData: FormData) => fieldErrorsOf(parseSettingsInput(readSettingsForm(formData)));
+
 export function SettingsForm({ defaultValues }: { defaultValues: SettingsFormValues }) {
   const [state, formAction, pending] = useActionState(saveSettingsAction, initialState);
 
+  const { formRef, errors, onSubmit, onChange } = useClientValidation({
+    validate,
+    serverState: state,
+    serverErrors: state.status === "error" ? state.fieldErrors : {},
+    fieldOf: settingsFieldOf,
+  });
+
   const values = state.status === "error" ? state.values : defaultValues;
-  const errors = state.status === "error" ? state.fieldErrors : {};
   const message = state.status === "error" ? state.message : undefined;
 
   return (
-    <form action={formAction} className="flex flex-col gap-5" noValidate>
+    <form
+      ref={formRef}
+      action={formAction}
+      onSubmit={onSubmit}
+      onChange={onChange}
+      className="flex flex-col gap-5"
+      noValidate
+    >
       {message && (
         <p role="alert" className="rounded-md bg-red-50 p-3 text-sm text-red-800">
           {message}

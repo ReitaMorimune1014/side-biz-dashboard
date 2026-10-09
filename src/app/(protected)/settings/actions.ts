@@ -3,12 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { requireUser } from "@/lib/auth/dal";
 import { saveSettings } from "@/lib/settings/repository";
-import { parseSettingsInput, type SettingsFieldErrors } from "@/lib/settings/schema";
+import {
+  parseSettingsInput,
+  readSettingsForm,
+  type SettingsFieldErrors,
+  type SettingsFormValues,
+} from "@/lib/settings/schema";
 import { createClient } from "@/lib/supabase/server";
-
-const FIELDS = ["hours", "minutes", "week_start"] as const;
-
-export type SettingsFormValues = Partial<Record<(typeof FIELDS)[number], string>>;
 
 export type SettingsFormState =
   | { status: "idle" }
@@ -28,12 +29,7 @@ export async function saveSettingsAction(
 ): Promise<SettingsFormState> {
   await requireUser();
 
-  const values: SettingsFormValues = {};
-  for (const field of FIELDS) {
-    const value = formData.get(field);
-    if (typeof value === "string") values[field] = value;
-  }
-
+  const values = readSettingsForm(formData);
   const parsed = parseSettingsInput(values);
   if (!parsed.success) return { status: "error", fieldErrors: parsed.fieldErrors, values };
 

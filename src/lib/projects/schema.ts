@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { yenAmount } from '@/lib/form-number'
+import { readFields } from '@/lib/forms/form-values'
 import { PROJECT_STATUSES, type ProjectStatus } from './status'
 
 // DB の check 制約(supabase/migrations の projects)と同じ値にする
@@ -94,6 +95,44 @@ export function parseEarnedOn(
   return result.success
     ? { success: true, data: result.data }
     : { success: false, fieldErrors: { earned_on: result.error.issues[0].message } }
+}
+
+export type ProjectEdit = { input: ProjectInput; change: StatusChange; earnedOn: string | null }
+
+/** 編集フォームの検証。項目・状態・売上日のエラーをまとめて返す */
+export function parseProjectEdit(
+  values: FormValues,
+): { success: true; data: ProjectEdit } | { success: false; fieldErrors: ProjectFieldErrors } {
+  const input = parseProjectInput(values)
+  const change = parseStatusChange(values)
+  const earnedOn = parseEarnedOn(values)
+  if (input.success && change.success && earnedOn.success) {
+    return { success: true, data: { input: input.data, change: change.data, earnedOn: earnedOn.data } }
+  }
+  return {
+    success: false,
+    fieldErrors: {
+      ...(input.success ? {} : input.fieldErrors),
+      ...(change.success ? {} : change.fieldErrors),
+      ...(earnedOn.success ? {} : earnedOn.fieldErrors),
+    },
+  }
+}
+
+export const PROJECT_FORM_FIELDS = [
+  'customer_id',
+  'title',
+  'amount',
+  'due_date',
+  'memo',
+  'status',
+  'earned_on',
+] as const
+export type ProjectFormValues = Partial<Record<(typeof PROJECT_FORM_FIELDS)[number], string>>
+
+/** 編集フォームは、開いたときの状態(expected_status)も一緒に送る */
+export function readProjectForm(formData: FormData): ProjectFormValues & { expected_status: string } {
+  return readFields(formData, [...PROJECT_FORM_FIELDS, 'expected_status'])
 }
 
 export function isProjectId(value: string): boolean {

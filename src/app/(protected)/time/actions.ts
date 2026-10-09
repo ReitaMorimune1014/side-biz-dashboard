@@ -13,14 +13,12 @@ import {
 import {
   isTimeEntryId,
   parseTimeEntryInput,
+  readTimeEntryForm,
   type TimeEntryFieldErrors,
+  type TimeEntryFormValues,
 } from "@/lib/time-entries/schema";
 
 const TIME_PATH = "/time";
-
-const FIELDS = ["project_id", "work_date", "hours", "minutes", "memo"] as const;
-
-export type TimeEntryFormValues = Partial<Record<(typeof FIELDS)[number], string>>;
 
 export type TimeEntryFormState =
   | { status: "idle" }
@@ -31,15 +29,6 @@ export type TimeEntryFormState =
       message?: string;
       values: TimeEntryFormValues;
     };
-
-function readForm(formData: FormData): TimeEntryFormValues {
-  const values: TimeEntryFormValues = {};
-  for (const field of FIELDS) {
-    const value = formData.get(field);
-    if (typeof value === "string") values[field] = value;
-  }
-  return values;
-}
 
 const SAVE_FAILED = "保存できませんでした。時間をおいて、もう一度お試しください";
 const NOT_FOUND = "稼働の記録が見つかりません。削除された可能性があります";
@@ -60,7 +49,7 @@ export async function createTimeEntryAction(
 ): Promise<TimeEntryFormState> {
   await requireUser();
 
-  const values = readForm(formData);
+  const values = readTimeEntryForm(formData);
   const parsed = parseTimeEntryInput(values);
   if (!parsed.success) return error(values, parsed.fieldErrors);
 
@@ -86,7 +75,7 @@ export async function updateTimeEntryAction(
 ): Promise<TimeEntryFormState> {
   await requireUser();
 
-  const values = readForm(formData);
+  const values = readTimeEntryForm(formData);
   if (!isTimeEntryId(id)) return error(values, {}, NOT_FOUND);
 
   const parsed = parseTimeEntryInput(values);

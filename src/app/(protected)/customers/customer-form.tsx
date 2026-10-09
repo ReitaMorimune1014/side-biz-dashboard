@@ -2,8 +2,16 @@
 
 import Link from "next/link";
 import { useActionState } from "react";
-import { CUSTOMER_MEMO_MAX, CUSTOMER_NAME_MAX } from "@/lib/customers/schema";
-import type { CustomerFormState, CustomerFormValues } from "./actions";
+import { useClientValidation } from "@/components/use-client-validation";
+import {
+  CUSTOMER_MEMO_MAX,
+  CUSTOMER_NAME_MAX,
+  parseCustomerInput,
+  readCustomerForm,
+  type CustomerFormValues,
+} from "@/lib/customers/schema";
+import { fieldErrorsOf } from "@/lib/forms/form-values";
+import type { CustomerFormState } from "./actions";
 
 type Props = {
   action: (state: CustomerFormState, formData: FormData) => Promise<CustomerFormState>;
@@ -13,15 +21,28 @@ type Props = {
 
 const initialState: CustomerFormState = { status: "idle" };
 
+const validate = (formData: FormData) => fieldErrorsOf(parseCustomerInput(readCustomerForm(formData)));
+
 export function CustomerForm({ action, defaultValues, submitLabel }: Props) {
   const [state, formAction, pending] = useActionState(action, initialState);
+  const { formRef, errors: fieldErrors, onSubmit, onChange } = useClientValidation({
+    validate,
+    serverState: state,
+    serverErrors: state.status === "error" ? state.fieldErrors : {},
+  });
 
   const values = state.status === "error" ? state.values : defaultValues;
-  const fieldErrors = state.status === "error" ? state.fieldErrors : {};
   const message = state.status === "error" ? state.message : undefined;
 
   return (
-    <form action={formAction} className="flex flex-col gap-5" noValidate>
+    <form
+      ref={formRef}
+      action={formAction}
+      onSubmit={onSubmit}
+      onChange={onChange}
+      className="flex flex-col gap-5"
+      noValidate
+    >
       {message && (
         <p role="alert" className="rounded-md bg-red-50 p-3 text-sm text-red-800">
           {message}
