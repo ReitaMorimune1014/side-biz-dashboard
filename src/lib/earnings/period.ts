@@ -63,8 +63,12 @@ function daysInMonth(year: number, month: number): number {
   return new Date(Date.UTC(year, month, 0)).getUTCDate()
 }
 
+type DateRange = { start: string; end: string }
+
 /** 期間の初日と最終日(どちらも含む)。全期間は null */
-export function periodRange(period: Period): { start: string; end: string } | null {
+export function periodRange(period: Exclude<Period, { view: 'year' }>): DateRange
+export function periodRange(period: Period): DateRange | null
+export function periodRange(period: Period): DateRange | null {
   switch (period.view) {
     case 'day': {
       const prefix = `${period.year}-${pad(period.month)}`
