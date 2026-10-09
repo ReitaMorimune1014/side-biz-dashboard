@@ -1,9 +1,20 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ListControls } from "@/components/list-controls";
+import { Pagination } from "@/components/pagination";
 import { verifySession } from "@/lib/auth/dal";
+import { listHref } from "@/lib/list/query";
 import { formatYen } from "@/lib/money";
+import {
+  PROJECT_SORTS,
+  PROJECT_SORT_LABELS,
+  applyProjectListQuery,
+  hasProjectFilters,
+  parseProjectListQuery,
+  projectListParams,
+} from "@/lib/projects/list";
 import { listProjects } from "@/lib/projects/repository";
-import { PROJECT_STATUS_LABELS } from "@/lib/projects/status";
+import { PROJECT_STATUSES, PROJECT_STATUS_LABELS } from "@/lib/projects/status";
 import { createClient } from "@/lib/supabase/server";
 import { StatusSelect } from "./status-select";
 import { ViewTabs } from "./view-tabs";
@@ -12,9 +23,15 @@ export const metadata: Metadata = {
   title: "案件",
 };
 
-export default async function ProjectsPage() {
+const PATH = "/projects";
+
+export default async function ProjectsPage({ searchParams }: PageProps<"/projects">) {
   await verifySession();
-  const projects = await listProjects(await createClient());
+  const query = parseProjectListQuery(await searchParams);
+  const allProjects = await listProjects(await createClient());
+  const page = applyProjectListQuery(allProjects, query);
+  const projects = page.items;
+  const clearHref = listHref(PATH, projectListParams({ ...query, q: "", status: null }, 1));
 
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-4 py-10">
@@ -31,11 +48,45 @@ export default async function ProjectsPage() {
         </div>
       </div>
 
-      {projects.length === 0 ? (
+      {allProjects.length > 0 && (
+        <ListControls
+          action={PATH}
+          searchLabel="案件を検索"
+          placeholder="題名・顧客名・メモ"
+          q={query.q}
+          selects={[
+            {
+              name: "status",
+              label: "状態",
+              value: query.status ?? "",
+              options: [
+                { value: "", label: "すべて" },
+                ...PROJECT_STATUSES.map((s) => ({ value: s, label: PROJECT_STATUS_LABELS[s] })),
+              ],
+            },
+            {
+              name: "sort",
+              label: "並び順",
+              value: query.sort,
+              options: PROJECT_SORTS.map((s) => ({ value: s, label: PROJECT_SORT_LABELS[s] })),
+            },
+          ]}
+          clearHref={hasProjectFilters(query) ? clearHref : undefined}
+        />
+      )}
+
+      {allProjects.length === 0 ? (
         <div className="rounded-md border border-dashed border-zinc-400 p-8 text-center">
           <p className="text-zinc-700">まだ案件が登録されていません。</p>
           <Link href="/projects/new" className="mt-2 inline-block text-sm underline">
             最初の案件を追加する
+          </Link>
+        </div>
+      ) : projects.length === 0 ? (
+        <div className="rounded-md border border-dashed border-zinc-400 p-8 text-center">
+          <p className="text-zinc-700">条件に合う案件はありません。</p>
+          <Link href={clearHref} className="mt-2 inline-block text-sm underline">
+            条件をクリアする
           </Link>
         </div>
       ) : (
@@ -85,6 +136,14 @@ export default async function ProjectsPage() {
             </li>
           ))}
         </ul>
+      )}
+
+      {projects.length > 0 && (
+        <Pagination
+          page={page}
+          hrefFor={(n) => listHref(PATH, projectListParams(query, n))}
+          label="案件のページ"
+        />
       )}
     </main>
   );

@@ -1,13 +1,24 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { DeleteButton } from "@/components/delete-button";
+import { ListControls } from "@/components/list-controls";
+import { Pagination } from "@/components/pagination";
 import { WeeklySummary } from "@/components/weekly-summary";
 import { verifySession } from "@/lib/auth/dal";
 import { formatDateWithWeekday, todayInTokyo } from "@/lib/date";
+import { listHref } from "@/lib/list/query";
 import { listProjects } from "@/lib/projects/repository";
 import { getSettings } from "@/lib/settings/repository";
 import { createClient } from "@/lib/supabase/server";
 import { formatMinutes } from "@/lib/time-entries/duration";
+import {
+  TIME_ENTRY_SORTS,
+  TIME_ENTRY_SORT_LABELS,
+  applyTimeEntryListQuery,
+  hasTimeEntryFilters,
+  parseTimeEntryListQuery,
+  timeEntryListParams,
+} from "@/lib/time-entries/list";
 import { listTimeEntries, sumMinutesBetween } from "@/lib/time-entries/repository";
 import { weeklyUsage } from "@/lib/weekly/usage";
 import { weekRange } from "@/lib/weekly/week";
@@ -19,11 +30,14 @@ export const metadata: Metadata = {
   title: "稼働",
 };
 
-export default async function TimePage() {
+const PATH = "/time";
+
+export default async function TimePage({ searchParams }: PageProps<"/time">) {
   await verifySession();
+  const query = parseTimeEntryListQuery(await searchParams);
 
   const supabase = await createClient();
-  const [projects, entries, settings] = await Promise.all([
+  const [projects, allEntries, settings] = await Promise.all([
     listProjects(supabase),
     listTimeEntries(supabase),
     getSettings(supabase),
@@ -34,6 +48,10 @@ export default async function TimePage() {
     await sumMinutesBetween(supabase, range.start, range.end),
     settings.weekly_target_minutes,
   );
+  const page = applyTimeEntryListQuery(allEntries, query);
+  const entries = page.items;
+  const clearHref = listHref(PATH, timeEntryListParams({ ...query, q: "", project: null }, 1));
+  const projectOptions = toProjectOptions(projects);
 
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-4 py-10">
@@ -55,7 +73,7 @@ export default async function TimePage() {
         ) : (
           <TimeEntryForm
             action={createTimeEntryAction}
-            projects={toProjectOptions(projects)}
+            projects={projectOptions}
             defaultValues={{ work_date: today }}
             submitLabel="記録する"
           />
@@ -66,10 +84,43 @@ export default async function TimePage() {
         <h2 id="entries" className="text-lg font-semibold">
           記録
         </h2>
-        {entries.length === 0 ? (
+        {allEntries.length > 0 && (
+          <ListControls
+            action={PATH}
+            searchLabel="記録を検索"
+            placeholder="案件名・メモ"
+            q={query.q}
+            selects={[
+              {
+                name: "project",
+                label: "案件",
+                value: query.project ?? "",
+                options: [
+                  { value: "", label: "すべて" },
+                  ...projectOptions.map((p) => ({ value: p.id, label: p.label })),
+                ],
+              },
+              {
+                name: "sort",
+                label: "並び順",
+                value: query.sort,
+                options: TIME_ENTRY_SORTS.map((s) => ({ value: s, label: TIME_ENTRY_SORT_LABELS[s] })),
+              },
+            ]}
+            clearHref={hasTimeEntryFilters(query) ? clearHref : undefined}
+          />
+        )}
+        {allEntries.length === 0 ? (
           <p className="rounded-md border border-dashed border-zinc-400 p-8 text-center text-zinc-700">
             まだ稼働が記録されていません。
           </p>
+        ) : entries.length === 0 ? (
+          <div className="rounded-md border border-dashed border-zinc-400 p-8 text-center">
+            <p className="text-zinc-700">条件に合う記録はありません。</p>
+            <Link href={clearHref} className="mt-2 inline-block text-sm underline">
+              条件をクリアする
+            </Link>
+          </div>
         ) : (
           <ul className="flex flex-col divide-y divide-zinc-200 rounded-md border border-zinc-200">
             {entries.map((entry) => {
@@ -110,6 +161,13 @@ export default async function TimePage() {
               );
             })}
           </ul>
+        )}
+        {entries.length > 0 && (
+          <Pagination
+            page={page}
+            hrefFor={(n) => listHref(PATH, timeEntryListParams(query, n))}
+            label="稼働の記録のページ"
+          />
         )}
       </section>
     </main>
