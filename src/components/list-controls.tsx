@@ -63,17 +63,19 @@ export function ListControls({ action, searchLabel, placeholder, q, selects, cle
           </select>
         </div>
       ))}
-      <button
-        type="submit"
-        className="rounded-md bg-zinc-900 px-4 py-1.5 text-sm font-medium text-white"
-      >
-        検索
-      </button>
-      {clearHref && (
-        <Link href={clearHref} className="self-center text-sm underline">
-          条件をクリア
-        </Link>
-      )}
+      <div className="flex items-center gap-3">
+        <button
+          type="submit"
+          className="rounded-md bg-zinc-900 px-4 py-1.5 text-sm font-medium text-white"
+        >
+          検索
+        </button>
+        {clearHref && (
+          <Link href={clearHref} className="text-sm underline">
+            条件をクリア
+          </Link>
+        )}
+      </div>
     </Form>
   );
 }
