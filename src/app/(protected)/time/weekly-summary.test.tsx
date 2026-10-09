@@ -22,26 +22,24 @@ describe('WeeklySummary(目標 5時間)', () => {
     expect(screen.getByRole('progressbar').getAttribute('aria-valuenow')).toBe('60')
   })
 
-  it('80% 未満なら、警告を出さずに残りを表示する', () => {
-    renderSummary(180)
-
-    expect(screen.queryByRole('status')).toBeNull()
-    expect(screen.getByText('残り2時間')).toBeTruthy()
-  })
-
-  it('80% 以上なら、注意を表示する', () => {
+  it('目標に届くまでは、残りを表示する', () => {
     renderSummary(250)
 
-    expect(screen.getByRole('status').textContent).toBe(
-      '今週の目標の80%を超えました。残りは50分です。',
-    )
+    expect(screen.queryByRole('status')).toBeNull()
+    expect(screen.getByText('目標まで、あと50分')).toBeTruthy()
   })
 
-  it('目標を超えたら、超えた時間を表示し、バーは 100% で止める', () => {
+  it('ちょうど目標に届いたら、達成を表示する', () => {
+    renderSummary(300)
+
+    expect(screen.getByRole('status').textContent).toBe('今週の目標を達成しました。')
+  })
+
+  it('目標を超えたら、達成と多く稼働した時間を表示し、バーは 100% で止める', () => {
     renderSummary(390)
 
     expect(screen.getByRole('status').textContent).toBe(
-      '今週の目標を1時間30分超えています。記録はこのまま続けられます。',
+      '今週の目標を達成しました。目標より1時間30分多く稼働しています。',
     )
     expect(screen.getByText('(130%)')).toBeTruthy()
     expect(screen.getByRole('progressbar').getAttribute('aria-valuenow')).toBe('100')

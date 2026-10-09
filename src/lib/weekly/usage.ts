@@ -1,34 +1,25 @@
-/** 目標のこの割合から「注意」にする */
-export const WARNING_RATIO = 0.8
-
-export type UsageLevel = 'ok' | 'warning' | 'over'
+/** 週の時間は「達成したい目標」。届いたら達成で、超えても達成のまま */
+export type UsageLevel = 'in_progress' | 'achieved'
 
 export type WeeklyUsage = {
   totalMinutes: number
   targetMinutes: number
   /** 消化率(%、切り捨て)。100 を超えることもある */
   percent: number
-  /** 目標までの残り。超えていたら 0 */
+  /** 目標までの残り。届いていたら 0 */
   remainingMinutes: number
-  /** 目標を超えた分。超えていなければ 0 */
-  overMinutes: number
-  /** 目標ちょうどは「注意」、超えたら「超過」 */
+  /** 目標より多く稼働した分。届いていなければ 0 */
+  extraMinutes: number
   level: UsageLevel
 }
 
 export function weeklyUsage(totalMinutes: number, targetMinutes: number): WeeklyUsage {
-  const level: UsageLevel =
-    totalMinutes > targetMinutes
-      ? 'over'
-      : totalMinutes >= targetMinutes * WARNING_RATIO
-        ? 'warning'
-        : 'ok'
   return {
     totalMinutes,
     targetMinutes,
     percent: Math.floor((totalMinutes * 100) / targetMinutes),
     remainingMinutes: Math.max(targetMinutes - totalMinutes, 0),
-    overMinutes: Math.max(totalMinutes - targetMinutes, 0),
-    level,
+    extraMinutes: Math.max(totalMinutes - targetMinutes, 0),
+    level: totalMinutes >= targetMinutes ? 'achieved' : 'in_progress',
   }
 }

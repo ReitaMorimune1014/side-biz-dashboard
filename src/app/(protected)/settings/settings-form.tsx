@@ -63,7 +63,7 @@ export function SettingsForm({ defaultValues }: { defaultValues: SettingsFormVal
           </p>
         ) : (
           <p id="target-hint" className="text-xs text-zinc-600">
-            目標の80%を超えると注意、目標を超えると警告を表示します(記録は止めません)
+            稼働画面に、今週の消化率を表示します。目標に届いたら「達成」と表示します
           </p>
         )}
       </fieldset>

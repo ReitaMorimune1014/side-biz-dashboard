@@ -9,30 +9,23 @@ type Props = {
 };
 
 const BAR_CLASS: Record<UsageLevel, string> = {
-  ok: "bg-zinc-900",
-  warning: "bg-amber-500",
-  over: "bg-red-600",
+  in_progress: "bg-zinc-900",
+  achieved: "bg-green-600",
 };
 
 function Message({ usage }: { usage: WeeklyUsage }) {
-  switch (usage.level) {
-    case "ok":
-      return <p className="text-sm text-zinc-700">残り{formatMinutes(usage.remainingMinutes)}</p>;
-    case "warning":
-      return (
-        <p role="status" className="rounded-md bg-amber-50 p-3 text-sm text-amber-900">
-          {usage.remainingMinutes === 0
-            ? "今週の目標時間に達しました。"
-            : `今週の目標の80%を超えました。残りは${formatMinutes(usage.remainingMinutes)}です。`}
-        </p>
-      );
-    case "over":
-      return (
-        <p role="status" className="rounded-md bg-red-50 p-3 text-sm text-red-800">
-          今週の目標を{formatMinutes(usage.overMinutes)}超えています。記録はこのまま続けられます。
-        </p>
-      );
+  if (usage.level === "in_progress") {
+    return (
+      <p className="text-sm text-zinc-700">目標まで、あと{formatMinutes(usage.remainingMinutes)}</p>
+    );
   }
+  return (
+    <p role="status" className="rounded-md bg-green-50 p-3 text-sm text-green-800">
+      {usage.extraMinutes === 0
+        ? "今週の目標を達成しました。"
+        : `今週の目標を達成しました。目標より${formatMinutes(usage.extraMinutes)}多く稼働しています。`}
+    </p>
+  );
 }
 
 export function WeeklySummary({ usage, range }: Props) {
