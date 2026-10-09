@@ -73,6 +73,8 @@ export function ProjectForm({ action, customers, defaultValues, status, submitLa
   const errors = state.status === "error" ? state.fieldErrors : {};
   const message = state.status === "error" ? state.message : undefined;
   const amountHint = "税込の円。整数で入力します(例: 120000)";
+  const earnedOnHint =
+    "納品・請求済・入金済のとき、この日に金額を売上として数えます。空なら、納品にした日(今日)になります。納品より前の状態では使いません";
 
   return (
     <form action={formAction} className="flex flex-col gap-5" noValidate>
@@ -161,6 +163,20 @@ export function ProjectForm({ action, customers, defaultValues, status, submitLa
               </option>
             ))}
           </select>
+        </Field>
+      )}
+
+      {status && (
+        <Field id="earned_on" label="売上日" error={errors.earned_on} hint={earnedOnHint}>
+          <input
+            id="earned_on"
+            name="earned_on"
+            type="date"
+            defaultValue={values?.earned_on}
+            aria-invalid={errors.earned_on ? true : undefined}
+            aria-describedby={describedBy("earned_on", errors.earned_on, earnedOnHint)}
+            className={inputClass}
+          />
         </Field>
       )}
 

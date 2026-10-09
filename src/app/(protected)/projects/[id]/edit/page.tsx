@@ -45,6 +45,7 @@ export default async function EditProjectPage({ params }: PageProps<"/projects/[
           due_date: project.due_date ?? "",
           memo: project.memo ?? "",
           status: project.status,
+          earned_on: project.earned_on ?? "",
         }}
         status={{ current: project.status }}
         submitLabel="保存する"
