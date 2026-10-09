@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { yenAmount } from '@/lib/form-number'
 import { PROJECT_STATUSES, type ProjectStatus } from './status'
 
 // DB の check 制約(supabase/migrations の projects)と同じ値にする
@@ -13,22 +14,7 @@ const projectInputSchema = z.object({
     .trim()
     .min(1, { error: '題名を入力してください' })
     .max(PROJECT_TITLE_MAX, { error: `題名は${PROJECT_TITLE_MAX}文字以内で入力してください` }),
-  amount: z
-    .string()
-    .trim()
-    .transform((value) => value.replaceAll(',', ''))
-    .pipe(
-      z
-        .string()
-        .min(1, { error: '金額を入力してください' })
-        .regex(/^\d+$/, { error: '金額は0以上の整数(円)で入力してください' }),
-    )
-    .transform(Number)
-    .pipe(
-      z
-        .number()
-        .max(PROJECT_AMOUNT_MAX, { error: `金額は${PROJECT_AMOUNT_MAX.toLocaleString('ja-JP')}円以内で入力してください` }),
-    ),
+  amount: yenAmount(0, PROJECT_AMOUNT_MAX),
   due_date: z
     .string()
     .trim()
