@@ -1,6 +1,5 @@
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest'
-import { createAnonClient, signUpTestUser, type TestUser } from './supabase'
+import { createAnonClient, signUpTestUser, type TestClient, type TestUser } from './supabase'
 
 // RLS の違反と、権限(grant)がないときの両方で返る、Postgres の insufficient_privilege
 const INSUFFICIENT_PRIVILEGE = '42501'
@@ -15,7 +14,7 @@ type Customer = {
 
 let alice: TestUser
 let bob: TestUser
-let anon: SupabaseClient
+let anon: TestClient
 
 beforeAll(async () => {
   alice = await signUpTestUser()
