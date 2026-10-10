@@ -1,6 +1,8 @@
 @import "tailwindcss";
 
+/* 画面は明るい配色だけで作っている(白いカードなど)。端末がダークモードでも、文字が読めるように明るい配色に固定する */
 :root {
+  color-scheme: light;
   --background: #ffffff;
   --foreground: #171717;
 }
@@ -10,13 +12,6 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {

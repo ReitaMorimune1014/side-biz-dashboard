@@ -12,10 +12,11 @@ type Props = {
 };
 
 const primaryClass =
-  "rounded-md bg-zinc-900 px-2.5 py-1 text-xs font-medium text-white disabled:opacity-60";
+  "inline-flex min-h-8 items-center rounded-md bg-zinc-900 px-3 text-xs font-medium text-white disabled:opacity-60";
 const secondaryClass =
-  "rounded-md border border-zinc-400 px-2.5 py-1 text-xs font-medium text-zinc-700 disabled:opacity-60";
-const backClass = "px-1 py-1 text-xs text-zinc-600 underline disabled:opacity-60";
+  "inline-flex min-h-8 items-center rounded-md border border-zinc-400 px-3 text-xs font-medium text-zinc-700 disabled:opacity-60";
+const backClass =
+  "inline-flex min-h-8 items-center px-1 text-xs text-zinc-600 underline disabled:opacity-60";
 
 export function MoveButtons({ projectId, title, from, forward, back }: Props) {
   const [state, formAction, pending] = useMoveProject(projectId, from);

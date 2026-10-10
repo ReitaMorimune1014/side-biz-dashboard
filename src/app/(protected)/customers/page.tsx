@@ -3,6 +3,7 @@ import Link from "next/link";
 import { DeleteButton } from "@/components/delete-button";
 import { ListControls } from "@/components/list-controls";
 import { Pagination } from "@/components/pagination";
+import { EmptyState } from "@/components/states";
 import { verifySession } from "@/lib/auth/dal";
 import {
   CUSTOMER_SORTS,
@@ -62,19 +63,15 @@ export default async function CustomersPage({ searchParams }: PageProps<"/custom
       )}
 
       {allCustomers.length === 0 ? (
-        <div className="rounded-md border border-dashed border-zinc-400 p-8 text-center">
-          <p className="text-zinc-700">まだ顧客が登録されていません。</p>
-          <Link href="/customers/new" className="mt-2 inline-block text-sm underline">
-            最初の顧客を追加する
-          </Link>
-        </div>
+        <EmptyState
+          message="まだ顧客が登録されていません。"
+          action={{ href: "/customers/new", label: "最初の顧客を追加する" }}
+        />
       ) : customers.length === 0 ? (
-        <div className="rounded-md border border-dashed border-zinc-400 p-8 text-center">
-          <p className="text-zinc-700">条件に合う顧客はありません。</p>
-          <Link href={clearHref} className="mt-2 inline-block text-sm underline">
-            条件をクリアする
-          </Link>
-        </div>
+        <EmptyState
+          message="条件に合う顧客はありません。"
+          action={{ href: clearHref, label: "条件をクリアする" }}
+        />
       ) : (
         <ul className="flex flex-col divide-y divide-zinc-200 rounded-md border border-zinc-200">
           {customers.map((customer) => (

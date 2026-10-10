@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     default: "副業管理ダッシュボード",
     template: "%s | 副業管理ダッシュボード",
   },
-  description: "副業の案件・請求・稼働時間を1か所で管理する",
+  description: "副業の案件・売上・稼働時間を1か所で管理する",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

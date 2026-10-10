@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ListControls } from "@/components/list-controls";
 import { Pagination } from "@/components/pagination";
+import { EmptyState } from "@/components/states";
 import { verifySession } from "@/lib/auth/dal";
 import { listHref } from "@/lib/list/query";
 import { formatYen } from "@/lib/money";
@@ -76,19 +77,15 @@ export default async function ProjectsPage({ searchParams }: PageProps<"/project
       )}
 
       {allProjects.length === 0 ? (
-        <div className="rounded-md border border-dashed border-zinc-400 p-8 text-center">
-          <p className="text-zinc-700">まだ案件が登録されていません。</p>
-          <Link href="/projects/new" className="mt-2 inline-block text-sm underline">
-            最初の案件を追加する
-          </Link>
-        </div>
+        <EmptyState
+          message="まだ案件が登録されていません。"
+          action={{ href: "/projects/new", label: "最初の案件を追加する" }}
+        />
       ) : projects.length === 0 ? (
-        <div className="rounded-md border border-dashed border-zinc-400 p-8 text-center">
-          <p className="text-zinc-700">条件に合う案件はありません。</p>
-          <Link href={clearHref} className="mt-2 inline-block text-sm underline">
-            条件をクリアする
-          </Link>
-        </div>
+        <EmptyState
+          message="条件に合う案件はありません。"
+          action={{ href: clearHref, label: "条件をクリアする" }}
+        />
       ) : (
         <ul className="flex flex-col divide-y divide-zinc-200 rounded-md border border-zinc-200">
           {projects.map((project) => (
@@ -118,7 +115,7 @@ export default async function ProjectsPage({ searchParams }: PageProps<"/project
                   </div>
                 </dl>
               </div>
-              <div className="flex shrink-0 flex-col items-start gap-2 sm:items-end">
+              <div className="flex shrink-0 flex-wrap items-start gap-2 sm:flex-col sm:items-end">
                 <StatusSelect
                   key={`${project.id}-${project.status}`}
                   projectId={project.id}
@@ -128,7 +125,7 @@ export default async function ProjectsPage({ searchParams }: PageProps<"/project
                 <Link
                   href={`/projects/${project.id}/edit`}
                   aria-label={`「${project.title}」を編集`}
-                  className="rounded-md border border-zinc-400 px-3 py-1.5 text-sm font-medium"
+                  className="inline-flex min-h-9 items-center rounded-md border border-zinc-400 px-3 text-sm font-medium"
                 >
                   編集
                 </Link>

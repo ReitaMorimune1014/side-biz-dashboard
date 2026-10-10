@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { EmptyState } from "@/components/states";
 import { verifySession } from "@/lib/auth/dal";
 import { todayInTokyo } from "@/lib/date";
 import {
@@ -75,8 +76,8 @@ export default async function MoneyPage({ searchParams }: PageProps<"/money">) {
             aria-current={view === period.view ? "page" : undefined}
             className={
               view === period.view
-                ? "rounded bg-white px-3 py-1 font-medium shadow-sm"
-                : "rounded px-3 py-1 text-zinc-700"
+                ? "inline-flex min-h-8 items-center rounded bg-white px-3 font-medium shadow-sm"
+                : "inline-flex min-h-8 items-center rounded px-3 text-zinc-700"
             }
           >
             {viewLabel}
@@ -85,25 +86,33 @@ export default async function MoneyPage({ searchParams }: PageProps<"/money">) {
       </nav>
 
       <section aria-labelledby="period" className="flex flex-col gap-4 rounded-md border border-zinc-200 p-4">
-        <div className="flex items-center justify-between gap-2">
-          {prev ? (
-            <Link href={hrefOf(prev)} className="text-sm underline">
-              ← {periodLabel(prev)}
-            </Link>
-          ) : (
-            <span />
-          )}
-          <h2 id="period" className="text-lg font-semibold">
-            {label}の売上
-          </h2>
-          {next ? (
-            <Link href={hrefOf(next)} className="text-sm underline">
-              {periodLabel(next)} →
-            </Link>
-          ) : (
-            <span />
-          )}
-        </div>
+        <h2 id="period" className="text-center text-lg font-semibold">
+          {label}の売上
+        </h2>
+        {(prev || next) && (
+          <nav aria-label="期間の移動" className="flex items-center justify-between gap-2">
+            {prev ? (
+              <Link
+                href={hrefOf(prev)}
+                className="inline-flex min-h-10 items-center rounded-md border border-zinc-300 px-3 text-sm"
+              >
+                ← {periodLabel(prev)}
+              </Link>
+            ) : (
+              <span />
+            )}
+            {next ? (
+              <Link
+                href={hrefOf(next)}
+                className="inline-flex min-h-10 items-center rounded-md border border-zinc-300 px-3 text-sm"
+              >
+                {periodLabel(next)} →
+              </Link>
+            ) : (
+              <span />
+            )}
+          </nav>
+        )}
 
         <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <div className="flex flex-col">
@@ -153,9 +162,7 @@ export default async function MoneyPage({ searchParams }: PageProps<"/money">) {
           {label}に売上にした案件
         </h2>
         {summary.items.length === 0 ? (
-          <p className="rounded-md border border-dashed border-zinc-400 p-8 text-center text-zinc-700">
-            この期間に売上にした案件はありません。
-          </p>
+          <EmptyState message="この期間に売上にした案件はありません。" />
         ) : (
           <ul className="flex flex-col divide-y divide-zinc-200 rounded-md border border-zinc-200">
             {summary.items.map((project) => (
