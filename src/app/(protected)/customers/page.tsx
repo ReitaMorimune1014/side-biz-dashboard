@@ -4,7 +4,7 @@ import { verifySession } from "@/lib/auth/dal";
 import { listActiveCustomers } from "@/lib/customers/repository";
 import { createClient } from "@/lib/supabase/server";
 import { deleteCustomerAction } from "./actions";
-import { DeleteButton } from "./delete-button";
+import { DeleteButton } from "@/components/delete-button";
 
 export const metadata: Metadata = {
   title: "顧客",
