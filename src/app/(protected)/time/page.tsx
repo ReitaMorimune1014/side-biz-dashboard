@@ -4,12 +4,16 @@ import { DeleteButton } from "@/components/delete-button";
 import { verifySession } from "@/lib/auth/dal";
 import { formatDateWithWeekday, todayInTokyo } from "@/lib/date";
 import { listProjects } from "@/lib/projects/repository";
+import { getSettings } from "@/lib/settings/repository";
 import { createClient } from "@/lib/supabase/server";
 import { formatMinutes } from "@/lib/time-entries/duration";
-import { listTimeEntries } from "@/lib/time-entries/repository";
+import { listTimeEntries, sumMinutesBetween } from "@/lib/time-entries/repository";
+import { weeklyUsage } from "@/lib/weekly/usage";
+import { weekRange } from "@/lib/weekly/week";
 import { createTimeEntryAction, deleteTimeEntryAction } from "./actions";
 import { toProjectOptions } from "./project-options";
 import { TimeEntryForm } from "./time-entry-form";
+import { WeeklySummary } from "./weekly-summary";
 
 export const metadata: Metadata = {
   title: "稼働",
@@ -19,14 +23,23 @@ export default async function TimePage() {
   await verifySession();
 
   const supabase = await createClient();
-  const [projects, entries] = await Promise.all([
+  const [projects, entries, settings] = await Promise.all([
     listProjects(supabase),
     listTimeEntries(supabase),
+    getSettings(supabase),
   ]);
+  const today = todayInTokyo();
+  const range = weekRange(today, settings.week_start);
+  const usage = weeklyUsage(
+    await sumMinutesBetween(supabase, range.start, range.end),
+    settings.weekly_target_minutes,
+  );
 
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-4 py-10">
       <h1 className="text-2xl font-semibold">稼働</h1>
+
+      <WeeklySummary usage={usage} range={range} />
 
       <section aria-labelledby="new-entry" className="flex flex-col gap-4">
         <h2 id="new-entry" className="text-lg font-semibold">
@@ -43,7 +56,7 @@ export default async function TimePage() {
           <TimeEntryForm
             action={createTimeEntryAction}
             projects={toProjectOptions(projects)}
-            defaultValues={{ work_date: todayInTokyo() }}
+            defaultValues={{ work_date: today }}
             submitLabel="記録する"
           />
         )}

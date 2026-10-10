@@ -77,6 +77,20 @@ isOneToOne: false
       referencedColumns: ["id","user_id"]
     }
                   ]
+                },"user_settings": {
+                  Row: {
+                    "created_at": string,"updated_at": string,"user_id": string,"week_start": number,"weekly_target_minutes": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"updated_at"?: string,"user_id"?: string,"week_start"?: number,"weekly_target_minutes"?: number
+                  }
+                  Update: {
+                    "created_at"?: string,"updated_at"?: string,"user_id"?: string,"week_start"?: number,"weekly_target_minutes"?: number
+                  }
+                  Relationships: [
+                    
+                  ]
                 }
           }
           Views: {
