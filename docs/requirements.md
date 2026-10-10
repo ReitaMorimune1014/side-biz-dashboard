@@ -85,7 +85,7 @@ Next.js(App Router) / TypeScript / Tailwind CSS + shadcn/ui / Supabase(認証・
 ### 安全のルール
 - 認可は、画面を隠すだけにせず、サーバー側とデータベースの権限でも強制する。
 - 秘密情報(secret key、service_role key)は、コードにも、`NEXT_PUBLIC_` の変数にも置かない。
-- サーバー側のコードで、`supabase.auth.getSession()` を信用しない。ユーザーの確認には `getUser()` を使う。
+- サーバー側のコードで、`supabase.auth.getSession()` を信用しない。ページの保護には `getClaims()`、データを書き換える操作には `getUser()` を使う。
 - 業務ロジックは、画面から独立した関数にし、単体テストを書く。
 
 ## 認証の決定事項(F1)
