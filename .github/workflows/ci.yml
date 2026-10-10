@@ -31,3 +31,24 @@ jobs:
       - run: npm run typecheck
       - run: npm run test
       - run: npm run build
+
+  integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      # 認証・REST・DB だけを起動する(migration は起動時に適用される)
+      - run: npx supabase start -x realtime,storage-api,imgproxy,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+      # ローカル用の URL と publishable key だけを渡す。secret key は使わない
+      - name: Export Supabase env
+        run: |
+          status="$(npx supabase status -o env)"
+          value() { printf '%s\n' "$status" | grep "^$1=" | cut -d= -f2- | tr -d '"'; }
+          echo "NEXT_PUBLIC_SUPABASE_URL=$(value API_URL)" >> "$GITHUB_ENV"
+          echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=$(value PUBLISHABLE_KEY)" >> "$GITHUB_ENV"
+      - run: npm run test:integration
