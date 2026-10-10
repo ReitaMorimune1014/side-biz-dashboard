@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 };
 
 export default async function SettingsPage() {
-  await verifySession();
+  const { readOnly } = await verifySession();
 
   const settings = await getSettings(await createClient());
   const { hours, minutes } = splitMinutes(settings.weekly_target_minutes);
@@ -24,6 +24,7 @@ export default async function SettingsPage() {
           minutes: String(minutes),
           week_start: String(settings.week_start),
         }}
+        readOnly={readOnly}
       />
     </main>
   );

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { verifySession } from "@/lib/auth/dal";
+import { verifyWritableSession } from "@/lib/auth/dal";
 import { createCustomerAction } from "../actions";
 import { CustomerForm } from "../customer-form";
 
@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 };
 
 export default async function NewCustomerPage() {
-  await verifySession();
+  await verifyWritableSession();
 
   return (
     <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-6 px-4 py-10">

@@ -43,3 +43,21 @@ describe("SettingsForm の画面の検証", () => {
     await waitFor(() => expect(saveSettingsAction).toHaveBeenCalledTimes(1));
   });
 });
+
+describe("SettingsForm の閲覧専用", () => {
+  it("値は見せるが、入力欄は無効で、保存のボタンはない", () => {
+    render(
+      <SettingsForm defaultValues={{ hours: "5", minutes: "30", week_start: "0" }} readOnly />,
+    );
+
+    const hours = screen.getByLabelText("時間") as HTMLInputElement;
+    const weekStart = screen.getByLabelText(/週の開始曜日/) as HTMLSelectElement;
+    expect(hours.value).toBe("5");
+    expect(hours.matches(":disabled")).toBe(true);
+    expect(screen.getByLabelText("分").matches(":disabled")).toBe(true);
+    expect(weekStart.value).toBe("0");
+    expect(weekStart.matches(":disabled")).toBe(true);
+    expect(screen.queryByRole("button", { name: "保存する" })).toBeNull();
+    expect(screen.getByText("閲覧専用のため、設定は変えられません")).toBeTruthy();
+  });
+});

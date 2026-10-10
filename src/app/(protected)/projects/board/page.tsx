@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 };
 
 export default async function ProjectBoardPage() {
-  await verifySession();
+  const { readOnly } = await verifySession();
   const columns = groupProjectsByStatus(await listProjects(await createClient()));
 
   return (
@@ -27,12 +27,14 @@ export default async function ProjectBoardPage() {
         <h1 className="text-2xl font-semibold">案件</h1>
         <div className="flex items-center gap-3">
           <ViewTabs current="/projects/board" />
-          <Link
-            href="/projects/new"
-            className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white"
-          >
-            案件を追加
-          </Link>
+          {!readOnly && (
+            <Link
+              href="/projects/new"
+              className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white"
+            >
+              案件を追加
+            </Link>
+          )}
         </div>
       </div>
 
@@ -62,12 +64,16 @@ export default async function ProjectBoardPage() {
                       key={project.id}
                       className="flex flex-col gap-2 rounded-md border border-zinc-200 bg-white p-3"
                     >
-                      <Link
-                        href={`/projects/${project.id}/edit`}
-                        className="font-medium break-words underline-offset-2 hover:underline"
-                      >
-                        {project.title}
-                      </Link>
+                      {readOnly ? (
+                        <p className="font-medium break-words">{project.title}</p>
+                      ) : (
+                        <Link
+                          href={`/projects/${project.id}/edit`}
+                          className="font-medium break-words underline-offset-2 hover:underline"
+                        >
+                          {project.title}
+                        </Link>
+                      )}
                       <p className="text-xs text-zinc-700">
                         {project.customer.name}
                         {project.customer.deleted && "(削除済み)"}
@@ -76,13 +82,15 @@ export default async function ProjectBoardPage() {
                         <span className="font-medium">{formatYen(project.amount)}</span>
                         <span>納期 {project.due_date?.replaceAll("-", "/") ?? "未定"}</span>
                       </p>
-                      <MoveButtons
-                        projectId={project.id}
-                        title={project.title}
-                        from={project.status}
-                        forward={forwardStatuses(project.status)}
-                        back={backStatuses(project.status)}
-                      />
+                      {!readOnly && (
+                        <MoveButtons
+                          projectId={project.id}
+                          title={project.title}
+                          from={project.status}
+                          forward={forwardStatuses(project.status)}
+                          back={backStatuses(project.status)}
+                        />
+                      )}
                     </li>
                   ))}
                 </ul>

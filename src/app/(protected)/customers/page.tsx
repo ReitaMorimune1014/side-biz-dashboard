@@ -25,7 +25,7 @@ export const metadata: Metadata = {
 const PATH = "/customers";
 
 export default async function CustomersPage({ searchParams }: PageProps<"/customers">) {
-  await verifySession();
+  const { readOnly } = await verifySession();
   const query = parseCustomerListQuery(await searchParams);
   const allCustomers = await listActiveCustomers(await createClient());
   const page = applyCustomerListQuery(allCustomers, query);
@@ -36,12 +36,14 @@ export default async function CustomersPage({ searchParams }: PageProps<"/custom
     <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-4 py-10">
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold">顧客</h1>
-        <Link
-          href="/customers/new"
-          className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white"
-        >
-          顧客を追加
-        </Link>
+        {!readOnly && (
+          <Link
+            href="/customers/new"
+            className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white"
+          >
+            顧客を追加
+          </Link>
+        )}
       </div>
 
       {allCustomers.length > 0 && (
@@ -65,7 +67,7 @@ export default async function CustomersPage({ searchParams }: PageProps<"/custom
       {allCustomers.length === 0 ? (
         <EmptyState
           message="まだ顧客が登録されていません。"
-          action={{ href: "/customers/new", label: "最初の顧客を追加する" }}
+          action={readOnly ? undefined : { href: "/customers/new", label: "最初の顧客を追加する" }}
         />
       ) : customers.length === 0 ? (
         <EmptyState
@@ -87,19 +89,21 @@ export default async function CustomersPage({ searchParams }: PageProps<"/custom
                   </p>
                 )}
               </div>
-              <div className="flex shrink-0 gap-2">
-                <Link
-                  href={`/customers/${customer.id}/edit`}
-                  aria-label={`「${customer.name}」を編集`}
-                  className="rounded-md border border-zinc-400 px-3 py-1.5 text-sm font-medium"
-                >
-                  編集
-                </Link>
-                <DeleteButton
-                  action={deleteCustomerAction.bind(null, customer.id)}
-                  name={customer.name}
-                />
-              </div>
+              {!readOnly && (
+                <div className="flex shrink-0 gap-2">
+                  <Link
+                    href={`/customers/${customer.id}/edit`}
+                    aria-label={`「${customer.name}」を編集`}
+                    className="rounded-md border border-zinc-400 px-3 py-1.5 text-sm font-medium"
+                  >
+                    編集
+                  </Link>
+                  <DeleteButton
+                    action={deleteCustomerAction.bind(null, customer.id)}
+                    name={customer.name}
+                  />
+                </div>
+              )}
             </li>
           ))}
         </ul>

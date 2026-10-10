@@ -27,7 +27,7 @@ export const metadata: Metadata = {
 const PATH = "/projects";
 
 export default async function ProjectsPage({ searchParams }: PageProps<"/projects">) {
-  await verifySession();
+  const { readOnly } = await verifySession();
   const query = parseProjectListQuery(await searchParams);
   const allProjects = await listProjects(await createClient());
   const page = applyProjectListQuery(allProjects, query);
@@ -40,12 +40,14 @@ export default async function ProjectsPage({ searchParams }: PageProps<"/project
         <h1 className="text-2xl font-semibold">案件</h1>
         <div className="flex items-center gap-3">
           <ViewTabs current="/projects" />
-          <Link
-            href="/projects/new"
-            className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white"
-          >
-            案件を追加
-          </Link>
+          {!readOnly && (
+            <Link
+              href="/projects/new"
+              className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white"
+            >
+              案件を追加
+            </Link>
+          )}
         </div>
       </div>
 
@@ -79,7 +81,7 @@ export default async function ProjectsPage({ searchParams }: PageProps<"/project
       {allProjects.length === 0 ? (
         <EmptyState
           message="まだ案件が登録されていません。"
-          action={{ href: "/projects/new", label: "最初の案件を追加する" }}
+          action={readOnly ? undefined : { href: "/projects/new", label: "最初の案件を追加する" }}
         />
       ) : projects.length === 0 ? (
         <EmptyState
@@ -115,21 +117,23 @@ export default async function ProjectsPage({ searchParams }: PageProps<"/project
                   </div>
                 </dl>
               </div>
-              <div className="flex shrink-0 flex-wrap items-start gap-2 sm:flex-col sm:items-end">
-                <StatusSelect
-                  key={`${project.id}-${project.status}`}
-                  projectId={project.id}
-                  title={project.title}
-                  from={project.status}
-                />
-                <Link
-                  href={`/projects/${project.id}/edit`}
-                  aria-label={`「${project.title}」を編集`}
-                  className="inline-flex min-h-9 items-center rounded-md border border-zinc-400 px-3 text-sm font-medium"
-                >
-                  編集
-                </Link>
-              </div>
+              {!readOnly && (
+                <div className="flex shrink-0 flex-wrap items-start gap-2 sm:flex-col sm:items-end">
+                  <StatusSelect
+                    key={`${project.id}-${project.status}`}
+                    projectId={project.id}
+                    title={project.title}
+                    from={project.status}
+                  />
+                  <Link
+                    href={`/projects/${project.id}/edit`}
+                    aria-label={`「${project.title}」を編集`}
+                    className="inline-flex min-h-9 items-center rounded-md border border-zinc-400 px-3 text-sm font-medium"
+                  >
+                    編集
+                  </Link>
+                </div>
+              )}
             </li>
           ))}
         </ul>

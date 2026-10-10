@@ -34,7 +34,7 @@ export const metadata: Metadata = {
 const PATH = "/time";
 
 export default async function TimePage({ searchParams }: PageProps<"/time">) {
-  await verifySession();
+  const { readOnly } = await verifySession();
   const query = parseTimeEntryListQuery(await searchParams);
 
   const supabase = await createClient();
@@ -60,24 +60,26 @@ export default async function TimePage({ searchParams }: PageProps<"/time">) {
 
       <WeeklySummary usage={usage} range={range} />
 
-      <section aria-labelledby="new-entry" className="flex flex-col gap-4">
-        <h2 id="new-entry" className="text-lg font-semibold">
-          稼働を記録
-        </h2>
-        {projects.length === 0 ? (
-          <EmptyState
-            message="稼働を記録するには、先に案件を登録してください。"
-            action={{ href: "/projects/new", label: "案件を追加する" }}
-          />
-        ) : (
-          <TimeEntryForm
-            action={createTimeEntryAction}
-            projects={projectOptions}
-            defaultValues={{ work_date: today }}
-            submitLabel="記録する"
-          />
-        )}
-      </section>
+      {!readOnly && (
+        <section aria-labelledby="new-entry" className="flex flex-col gap-4">
+          <h2 id="new-entry" className="text-lg font-semibold">
+            稼働を記録
+          </h2>
+          {projects.length === 0 ? (
+            <EmptyState
+              message="稼働を記録するには、先に案件を登録してください。"
+              action={{ href: "/projects/new", label: "案件を追加する" }}
+            />
+          ) : (
+            <TimeEntryForm
+              action={createTimeEntryAction}
+              projects={projectOptions}
+              defaultValues={{ work_date: today }}
+              submitLabel="記録する"
+            />
+          )}
+        </section>
+      )}
 
       <section aria-labelledby="entries" className="flex flex-col gap-4">
         <h2 id="entries" className="text-lg font-semibold">
@@ -139,19 +141,21 @@ export default async function TimePage({ searchParams }: PageProps<"/time">) {
                       </p>
                     )}
                   </div>
-                  <div className="flex shrink-0 gap-2">
-                    <Link
-                      href={`/time/${entry.id}/edit`}
-                      aria-label={`${name}を編集`}
-                      className="rounded-md border border-zinc-400 px-3 py-1.5 text-sm font-medium"
-                    >
-                      編集
-                    </Link>
-                    <DeleteButton
-                      action={deleteTimeEntryAction.bind(null, entry.id)}
-                      name={name}
-                    />
-                  </div>
+                  {!readOnly && (
+                    <div className="flex shrink-0 gap-2">
+                      <Link
+                        href={`/time/${entry.id}/edit`}
+                        aria-label={`${name}を編集`}
+                        className="rounded-md border border-zinc-400 px-3 py-1.5 text-sm font-medium"
+                      >
+                        編集
+                      </Link>
+                      <DeleteButton
+                        action={deleteTimeEntryAction.bind(null, entry.id)}
+                        name={name}
+                      />
+                    </div>
+                  )}
                 </li>
               );
             })}

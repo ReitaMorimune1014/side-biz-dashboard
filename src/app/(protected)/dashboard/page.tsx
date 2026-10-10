@@ -44,7 +44,7 @@ function DaysLeft({ days }: { days: number }) {
 }
 
 export default async function DashboardPage() {
-  const { email } = await verifySession();
+  const { email, readOnly } = await verifySession();
 
   const today = todayInTokyo();
   const [year, month] = today.split("-").map(Number);
@@ -84,7 +84,7 @@ export default async function DashboardPage() {
           </dd>
           <dd>
             <Link href="/time" className="text-xs underline">
-              稼働を記録する
+              {readOnly ? "稼働を見る" : "稼働を記録する"}
             </Link>
           </dd>
         </div>
@@ -131,12 +131,16 @@ export default async function DashboardPage() {
                     <span className="rounded bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-800">
                       {PROJECT_STATUS_LABELS[project.status]}
                     </span>
-                    <Link
-                      href={`/projects/${project.id}/edit`}
-                      className="font-medium break-words underline"
-                    >
-                      {project.title}
-                    </Link>
+                    {readOnly ? (
+                      <span className="font-medium break-words">{project.title}</span>
+                    ) : (
+                      <Link
+                        href={`/projects/${project.id}/edit`}
+                        className="font-medium break-words underline"
+                      >
+                        {project.title}
+                      </Link>
+                    )}
                   </p>
                   <p className="text-sm text-zinc-700">{project.customer.name}</p>
                 </div>

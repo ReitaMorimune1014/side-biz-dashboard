@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { EmptyState } from "@/components/states";
-import { verifySession } from "@/lib/auth/dal";
+import { verifyWritableSession } from "@/lib/auth/dal";
 import { listActiveCustomers } from "@/lib/customers/repository";
 import { createClient } from "@/lib/supabase/server";
 import { createProjectAction } from "../actions";
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 };
 
 export default async function NewProjectPage() {
-  await verifySession();
+  await verifyWritableSession();
   const customers = await listActiveCustomers(await createClient());
 
   return (
