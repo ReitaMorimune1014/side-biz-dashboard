@@ -37,36 +37,16 @@ export type Database = {
                   Relationships: [
                     
                   ]
-                },"invoices": {
-                  Row: {
-                    "amount": number,"created_at": string,"due_on": string,"id": string,"issued_on": string,"paid_on": string | null,"project_id": string,"updated_at": string,"user_id": string
-                  }
-                  ComputedFields: never
-                  Insert: {
-                    "amount": number,"created_at"?: string,"due_on": string,"id"?: string,"issued_on": string,"paid_on"?: string | null,"project_id": string,"updated_at"?: string,"user_id"?: string
-                  }
-                  Update: {
-                    "amount"?: number,"created_at"?: string,"due_on"?: string,"id"?: string,"issued_on"?: string,"paid_on"?: string | null,"project_id"?: string,"updated_at"?: string,"user_id"?: string
-                  }
-                  Relationships: [
-                    {
-      foreignKeyName: "invoices_project_id_user_id_fkey"
-      columns: ["project_id","user_id"]
-isOneToOne: false
-      referencedRelation: "projects"
-      referencedColumns: ["id","user_id"]
-    }
-                  ]
                 },"projects": {
                   Row: {
-                    "amount": number,"created_at": string,"customer_id": string,"due_date": string | null,"id": string,"memo": string | null,"status": string,"title": string,"updated_at": string,"user_id": string
+                    "amount": number,"created_at": string,"customer_id": string,"due_date": string | null,"earned_on": string | null,"id": string,"memo": string | null,"status": string,"title": string,"updated_at": string,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "amount": number,"created_at"?: string,"customer_id": string,"due_date"?: string | null,"id"?: string,"memo"?: string | null,"status"?: string,"title": string,"updated_at"?: string,"user_id"?: string
+                    "amount": number,"created_at"?: string,"customer_id": string,"due_date"?: string | null,"earned_on"?: string | null,"id"?: string,"memo"?: string | null,"status"?: string,"title": string,"updated_at"?: string,"user_id"?: string
                   }
                   Update: {
-                    "amount"?: number,"created_at"?: string,"customer_id"?: string,"due_date"?: string | null,"id"?: string,"memo"?: string | null,"status"?: string,"title"?: string,"updated_at"?: string,"user_id"?: string
+                    "amount"?: number,"created_at"?: string,"customer_id"?: string,"due_date"?: string | null,"earned_on"?: string | null,"id"?: string,"memo"?: string | null,"status"?: string,"title"?: string,"updated_at"?: string,"user_id"?: string
                   }
                   Relationships: [
                     {

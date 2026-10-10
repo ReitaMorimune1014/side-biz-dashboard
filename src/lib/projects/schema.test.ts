@@ -4,9 +4,25 @@ import {
   PROJECT_MEMO_MAX,
   PROJECT_TITLE_MAX,
   isProjectId,
+  parseEarnedOn,
   parseProjectInput,
   parseStatusChange,
 } from './schema'
+
+describe('parseEarnedOn', () => {
+  it('日付を読み、空なら null にする', () => {
+    expect(parseEarnedOn({ earned_on: '2026-10-10' })).toEqual({ success: true, data: '2026-10-10' })
+    expect(parseEarnedOn({ earned_on: ' ' })).toEqual({ success: true, data: null })
+    expect(parseEarnedOn({})).toEqual({ success: true, data: null })
+  })
+
+  it.each(['2026-02-30', '2026/10/10'])('「%s」は拒否する', (earned_on) => {
+    expect(parseEarnedOn({ earned_on })).toEqual({
+      success: false,
+      fieldErrors: { earned_on: '売上日は正しい日付で入力してください' },
+    })
+  })
+})
 
 const CUSTOMER_ID = '3f1c2b7e-8a4d-4c1e-9b2f-1a2b3c4d5e6f'
 

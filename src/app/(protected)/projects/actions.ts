@@ -12,6 +12,7 @@ import {
 } from "@/lib/projects/repository";
 import {
   isProjectId,
+  parseEarnedOn,
   parseProjectInput,
   parseStatusChange,
   type ProjectFieldErrors,
@@ -21,8 +22,24 @@ import { createClient } from "@/lib/supabase/server";
 
 const PROJECTS_PATH = "/projects";
 const BOARD_PATH = "/projects/board";
+const MONEY_PATH = "/money";
 
-const FIELDS = ["customer_id", "title", "amount", "due_date", "memo", "status"] as const;
+/** 案件の金額・状態・売上日は、お金のページの集計にも出る */
+function revalidateProjectPages() {
+  revalidatePath(PROJECTS_PATH);
+  revalidatePath(BOARD_PATH);
+  revalidatePath(MONEY_PATH);
+}
+
+const FIELDS = [
+  "customer_id",
+  "title",
+  "amount",
+  "due_date",
+  "memo",
+  "status",
+  "earned_on",
+] as const;
 
 export type ProjectFormValues = Partial<Record<(typeof FIELDS)[number], string>>;
 
@@ -79,8 +96,7 @@ export async function createProjectAction(
     return error(values, {}, SAVE_FAILED);
   }
 
-  revalidatePath(PROJECTS_PATH);
-  revalidatePath(BOARD_PATH);
+  revalidateProjectPages();
   redirect(PROJECTS_PATH);
 }
 
@@ -96,10 +112,12 @@ export async function updateProjectAction(
 
   const input = parseProjectInput(values);
   const change = parseStatusChange(values);
-  if (!input.success || !change.success) {
+  const earnedOn = parseEarnedOn(values);
+  if (!input.success || !change.success || !earnedOn.success) {
     return error(values, {
       ...(input.success ? {} : input.fieldErrors),
       ...(change.success ? {} : change.fieldErrors),
+      ...(earnedOn.success ? {} : earnedOn.fieldErrors),
     });
   }
 
@@ -115,7 +133,7 @@ export async function updateProjectAction(
       return error(values, { customer_id: CUSTOMER_REQUIRED });
     }
 
-    result = await updateProject(supabase, id, input.data, change.data);
+    result = await updateProject(supabase, id, input.data, change.data, earnedOn.data);
   } catch (e) {
     console.error("updateProject failed:", e);
     return error(values, {}, SAVE_FAILED);
@@ -130,8 +148,7 @@ export async function updateProjectAction(
     }
   }
 
-  revalidatePath(PROJECTS_PATH);
-  revalidatePath(BOARD_PATH);
+  revalidateProjectPages();
   redirect(PROJECTS_PATH);
 }
 
@@ -168,7 +185,6 @@ export async function moveProjectAction(
     }
   }
 
-  revalidatePath(PROJECTS_PATH);
-  revalidatePath(BOARD_PATH);
+  revalidateProjectPages();
   return { status: "idle" };
 }

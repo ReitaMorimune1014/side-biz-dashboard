@@ -31,8 +31,14 @@ const statusChangeSchema = z.object({
   expected_status: z.enum(PROJECT_STATUSES),
 })
 
+const earnedOnSchema = z
+  .string()
+  .trim()
+  .transform((value) => (value === '' ? null : value))
+  .pipe(z.iso.date({ error: '売上日は正しい日付で入力してください' }).nullable())
+
 export type ProjectInput = z.output<typeof projectInputSchema>
-export type ProjectField = keyof ProjectInput | 'status'
+export type ProjectField = keyof ProjectInput | 'status' | 'earned_on'
 export type ProjectFieldErrors = Partial<Record<ProjectField, string>>
 export type StatusChange = { from: ProjectStatus; to: ProjectStatus }
 
@@ -78,6 +84,16 @@ export function parseStatusChange(
   return result.success
     ? { success: true, data: { from: result.data.expected_status, to: result.data.status } }
     : { success: false, fieldErrors: toFieldErrors(result.error) }
+}
+
+/** 編集フォームの「売上日」。空なら null(状態に合わせて自動で決める) */
+export function parseEarnedOn(
+  values: FormValues,
+): { success: true; data: string | null } | { success: false; fieldErrors: ProjectFieldErrors } {
+  const result = earnedOnSchema.safeParse(asString(values.earned_on))
+  return result.success
+    ? { success: true, data: result.data }
+    : { success: false, fieldErrors: { earned_on: result.error.issues[0].message } }
 }
 
 export function isProjectId(value: string): boolean {

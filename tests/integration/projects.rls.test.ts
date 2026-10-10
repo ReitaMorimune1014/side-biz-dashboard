@@ -27,8 +27,10 @@ async function createProject(user: TestUser, customerId: string, title = '案件
   return data
 }
 
+/** 納品以降には売上日が要る(projects_earned_on_matches_status) */
 async function setStatus(user: TestUser, id: string, status: string) {
-  return user.client.from('projects').update({ status }).eq('id', id).select('status')
+  const earned_on = ['delivered', 'invoiced', 'paid'].includes(status) ? '2026-10-10' : null
+  return user.client.from('projects').update({ status, earned_on }).eq('id', id).select('status')
 }
 
 beforeAll(async () => {

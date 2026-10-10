@@ -23,8 +23,8 @@ export default function ProtectedLayout({ children }: LayoutProps<"/">) {
               </Link>
             </li>
             <li>
-              <Link href="/invoices" prefetch={false}>
-                請求
+              <Link href="/money" prefetch={false}>
+                お金
               </Link>
             </li>
             <li>
