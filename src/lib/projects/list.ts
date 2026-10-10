@@ -72,18 +72,26 @@ const COMPARE: Record<ProjectSort, ((a: ListedProject, b: ListedProject) => numb
 }
 
 /**
- * 案件の一覧に、検索(題名・顧客名・メモ)、状態の絞り込み、並び替え、ページ分割をかける。
+ * 案件の一覧に、検索(題名・顧客名・メモ)、状態の絞り込み、並び替えをかける(ページ分割はしない)。
  * projects は登録の新しい順で渡す。同じ順位の案件は、その順のまま並べる
  */
-export function applyProjectListQuery<P extends ListedProject>(
+export function filterProjectList<P extends ListedProject>(
   projects: readonly P[],
-  query: ProjectListQuery,
-): Page<P> {
+  query: Omit<ProjectListQuery, 'page'>,
+): P[] {
   const filtered = projects.filter(
     (p) =>
       (query.status === null || p.status === query.status) &&
       matchesSearch([p.title, p.customer.name, p.memo], query.q),
   )
   const compare = COMPARE[query.sort]
-  return paginate(compare ? filtered.toSorted(compare) : filtered, query.page)
+  return compare ? filtered.toSorted(compare) : filtered
+}
+
+/** filterProjectList のあと、ページに分ける */
+export function applyProjectListQuery<P extends ListedProject>(
+  projects: readonly P[],
+  query: ProjectListQuery,
+): Page<P> {
+  return paginate(filterProjectList(projects, query), query.page)
 }

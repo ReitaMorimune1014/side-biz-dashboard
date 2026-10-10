@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { ProjectStatus } from './status'
 import {
   applyProjectListQuery,
+  filterProjectList,
   hasProjectFilters,
   parseProjectListQuery,
   projectListParams,
@@ -154,5 +155,17 @@ describe('applyProjectListQuery', () => {
     const projects = [project('a', { amount: 1 }), project('b', { amount: 2 })]
     applyProjectListQuery(projects, { ...DEFAULT, sort: 'amount' })
     expect(projects.map((p) => p.id)).toEqual(['a', 'b'])
+  })
+})
+
+describe('filterProjectList(CSV 出力用)', () => {
+  it('検索・絞り込み・並び替えは一覧と同じで、ページに分けず全件を返す', () => {
+    const projects = Array.from({ length: 25 }, (_, i) =>
+      project(String(i), { amount: i, status: i % 2 === 0 ? 'paid' : 'lost' }),
+    )
+    const result = filterProjectList(projects, { ...DEFAULT, status: 'paid', sort: 'amount' })
+    expect(result.map((p) => p.id)).toEqual(
+      ['24', '22', '20', '18', '16', '14', '12', '10', '8', '6', '4', '2', '0'],
+    )
   })
 })

@@ -3,6 +3,16 @@ export const PAGE_SIZE = 10
 
 export type SearchParams = Record<string, string | string[] | undefined>
 
+/** Route Handler の URL の検索パラメータを、ページの searchParams と同じ形にする */
+export function toSearchParams(search: URLSearchParams): SearchParams {
+  const params: SearchParams = {}
+  for (const name of new Set(search.keys())) {
+    const values = search.getAll(name)
+    params[name] = values.length === 1 ? values[0] : values
+  }
+  return params
+}
+
 /** 同じ名前のパラメータが複数あれば、最初の値を使う */
 export function firstParam(params: SearchParams, name: string): string {
   const value = params[name]

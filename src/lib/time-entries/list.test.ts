@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   applyTimeEntryListQuery,
+  filterTimeEntryList,
   hasTimeEntryFilters,
   parseTimeEntryListQuery,
   timeEntryListParams,
@@ -82,5 +83,17 @@ describe('applyTimeEntryListQuery', () => {
     const page = applyTimeEntryListQuery(many, { ...DEFAULT, page: 3 })
     expect(ids(page)).toEqual(['20', '21', '22', '23', '24'])
     expect(page).toMatchObject({ pageCount: 3, from: 21, to: 25 })
+  })
+})
+
+describe('filterTimeEntryList(CSV 出力用)', () => {
+  it('絞り込みと並び替えは一覧と同じで、ページに分けず全件を返す', () => {
+    const many = Array.from({ length: 25 }, (_, i) =>
+      entry(String(i), i < 15 ? PROJECT_A : PROJECT_B, '案件'),
+    )
+    const result = filterTimeEntryList(many, { ...DEFAULT, project: PROJECT_A, sort: 'oldest' })
+    expect(result).toHaveLength(15)
+    expect(result[0].id).toBe('14')
+    expect(result[14].id).toBe('0')
   })
 })

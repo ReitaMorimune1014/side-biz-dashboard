@@ -8,7 +8,19 @@ import {
   parsePage,
   parseSearch,
   pickOption,
+  toSearchParams,
 } from './query'
+
+describe('toSearchParams', () => {
+  it('1つならその値、複数なら配列にする', () => {
+    expect(toSearchParams(new URLSearchParams('q=%E3%83%AD%E3%82%B4&sort=due&status=a&status=b'))).toEqual({
+      q: 'ロゴ',
+      sort: 'due',
+      status: ['a', 'b'],
+    })
+    expect(toSearchParams(new URLSearchParams(''))).toEqual({})
+  })
+})
 
 describe('firstParam', () => {
   it('値がなければ空文字、複数あれば最初の値', () => {

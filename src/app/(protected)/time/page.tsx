@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { CsvLink } from "@/components/csv-link";
 import { DeleteButton } from "@/components/delete-button";
 import { ListControls } from "@/components/list-controls";
 import { Pagination } from "@/components/pagination";
@@ -109,6 +110,12 @@ export default async function TimePage({ searchParams }: PageProps<"/time">) {
               },
             ]}
             clearHref={hasTimeEntryFilters(query) ? clearHref : undefined}
+          />
+        )}
+        {page.total > 0 && (
+          <CsvLink
+            href={listHref(`${PATH}/export`, timeEntryListParams(query, 1))}
+            total={page.total}
           />
         )}
         {allEntries.length === 0 ? (
