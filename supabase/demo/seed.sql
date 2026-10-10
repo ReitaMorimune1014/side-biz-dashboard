@@ -99,6 +99,20 @@ begin
     end if;
   end loop;
 
+  -- 変更履歴(F15)はトリガーが実行した瞬間の日時で記録するので、案件の日付に合わせて並べ直す。
+  -- 作成は登録日、状態の変更は売上日(なければ登録の3日後)の18時(日本時間)にする
+  update public.project_history h
+    set changed_at = case
+      when h.operation = 'create' then p.created_at
+      else least(
+        (coalesce(p.earned_on, (p.created_at at time zone 'Asia/Tokyo')::date + 3) + time '18:00')
+          at time zone 'Asia/Tokyo',
+        now()
+      )
+    end
+    from public.projects p
+    where p.id = h.project_id and h.user_id = demo_id;
+
   -- 稼働120件を、直近の約半年に分けて作る(今週の分も入る)
   for k in 0 .. 119 loop
     days_ago := (k * 3) / 2;

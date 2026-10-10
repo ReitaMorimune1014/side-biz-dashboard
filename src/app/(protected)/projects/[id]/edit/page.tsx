@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { verifyWritableSession } from "@/lib/auth/dal";
 import { listActiveCustomers } from "@/lib/customers/repository";
@@ -34,7 +35,12 @@ export default async function EditProjectPage({ params }: PageProps<"/projects/[
 
   return (
     <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-6 px-4 py-10">
-      <h1 className="text-2xl font-semibold">案件を編集</h1>
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h1 className="text-2xl font-semibold">案件を編集</h1>
+        <Link href={`/projects/${project.id}/history`} className="text-sm underline">
+          変更履歴を見る
+        </Link>
+      </div>
       <ProjectForm
         action={updateProjectAction.bind(null, project.id)}
         customers={customers}

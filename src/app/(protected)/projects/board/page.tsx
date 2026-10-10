@@ -81,6 +81,13 @@ export default async function ProjectBoardPage() {
                       <p className="flex flex-wrap gap-x-3 text-xs text-zinc-700">
                         <span className="font-medium">{formatYen(project.amount)}</span>
                         <span>納期 {project.due_date?.replaceAll("-", "/") ?? "未定"}</span>
+                        <Link
+                          href={`/projects/${project.id}/history`}
+                          aria-label={`「${project.title}」の変更履歴`}
+                          className="underline"
+                        >
+                          履歴
+                        </Link>
                       </p>
                       {!readOnly && (
                         <MoveButtons

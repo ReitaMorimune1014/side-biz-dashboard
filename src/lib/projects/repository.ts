@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { todayInTokyo } from '@/lib/date'
 import type { Database } from '@/lib/supabase/database.types'
 import { earnedOnPatch } from './earned'
+import { isHistoryOperation, parseHistoryChanges, type ProjectHistoryEntry } from './history'
 import type { ProjectInput, StatusChange } from './schema'
 import { isProjectStatus, type ProjectStatus } from './status'
 
@@ -63,6 +64,29 @@ export async function listProjects(client: Client): Promise<Project[]> {
     .order('created_at', { ascending: false })
   if (error) throw error
   return data.map(toProject)
+}
+
+/** 案件の変更履歴を、新しい順に返す(記録は DB のトリガーが行う) */
+export async function listProjectHistory(
+  client: Client,
+  projectId: string,
+): Promise<ProjectHistoryEntry[]> {
+  const { data, error } = await client
+    .from('project_history')
+    .select('id, operation, changes, changed_at')
+    .eq('project_id', projectId)
+    .order('changed_at', { ascending: false })
+    .order('id', { ascending: false })
+  if (error) throw error
+  return data.map((row) => {
+    if (!isHistoryOperation(row.operation)) throw new Error(`unknown history operation: ${row.operation}`)
+    return {
+      id: row.id,
+      operation: row.operation,
+      changedAt: row.changed_at,
+      changes: parseHistoryChanges(row.changes),
+    }
+  })
 }
 
 export async function getProject(client: Client, id: string): Promise<Project | null> {
