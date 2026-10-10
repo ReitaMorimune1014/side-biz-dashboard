@@ -50,17 +50,28 @@ export function hasTimeEntryFilters(query: TimeEntryListQuery): boolean {
   return query.q !== '' || query.project !== null
 }
 
+type ListedTimeEntry = { project_id: string; memo: string | null; project: { title: string } }
+
 /**
- * 稼働の一覧に、検索(案件名・メモ)、案件の絞り込み、並び替え、ページ分割をかける。
+ * 稼働の一覧に、検索(案件名・メモ)、案件の絞り込み、並び替えをかける(ページ分割はしない)。
  * entries は日付の新しい順(同じ日は後の記録が先)で渡す。古い順は、その逆にする
  */
-export function applyTimeEntryListQuery<
-  E extends { project_id: string; memo: string | null; project: { title: string } },
->(entries: readonly E[], query: TimeEntryListQuery): Page<E> {
+export function filterTimeEntryList<E extends ListedTimeEntry>(
+  entries: readonly E[],
+  query: Omit<TimeEntryListQuery, 'page'>,
+): E[] {
   const filtered = entries.filter(
     (e) =>
       (query.project === null || e.project_id === query.project) &&
       matchesSearch([e.project.title, e.memo], query.q),
   )
-  return paginate(query.sort === 'oldest' ? filtered.toReversed() : filtered, query.page)
+  return query.sort === 'oldest' ? filtered.toReversed() : filtered
+}
+
+/** filterTimeEntryList のあと、ページに分ける */
+export function applyTimeEntryListQuery<E extends ListedTimeEntry>(
+  entries: readonly E[],
+  query: TimeEntryListQuery,
+): Page<E> {
+  return paginate(filterTimeEntryList(entries, query), query.page)
 }

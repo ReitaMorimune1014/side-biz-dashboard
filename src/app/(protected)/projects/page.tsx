@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { CsvLink } from "@/components/csv-link";
 import { ListControls } from "@/components/list-controls";
 import { Pagination } from "@/components/pagination";
 import { EmptyState } from "@/components/states";
@@ -76,6 +77,10 @@ export default async function ProjectsPage({ searchParams }: PageProps<"/project
           ]}
           clearHref={hasProjectFilters(query) ? clearHref : undefined}
         />
+      )}
+
+      {page.total > 0 && (
+        <CsvLink href={listHref(`${PATH}/export`, projectListParams(query, 1))} total={page.total} />
       )}
 
       {allProjects.length === 0 ? (
