@@ -2,7 +2,7 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/supabase/database.types'
 
 export type TestClient = SupabaseClient<Database>
-export type TestUser = { client: TestClient; userId: string }
+export type TestUser = { client: TestClient; userId: string; email: string; password: string }
 
 /** アプリと同じ publishable key で作る。service_role key は使わない */
 export function createAnonClient(): TestClient {
@@ -21,13 +21,12 @@ export function createAnonClient(): TestClient {
 /** 毎回別のユーザーを作り、ログイン済みのクライアントを返す */
 export async function signUpTestUser(): Promise<TestUser> {
   const client = createAnonClient()
-  const { data, error } = await client.auth.signUp({
-    email: `rls-${crypto.randomUUID()}@example.com`,
-    password: crypto.randomUUID(),
-  })
+  const email = `rls-${crypto.randomUUID()}@example.com`
+  const password = crypto.randomUUID()
+  const { data, error } = await client.auth.signUp({ email, password })
   if (error) throw error
   if (!data.session || !data.user) {
     throw new Error('signUp でセッションが得られませんでした。auth.email.enable_confirmations を確認してください')
   }
-  return { client, userId: data.user.id }
+  return { client, userId: data.user.id, email, password }
 }

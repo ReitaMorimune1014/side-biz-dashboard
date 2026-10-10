@@ -43,7 +43,7 @@ function hrefOf(period: Period): string {
 const first = (value: string | string[] | undefined) => (Array.isArray(value) ? value[0] : value);
 
 export default async function MoneyPage({ searchParams }: PageProps<"/money">) {
-  await verifySession();
+  const { readOnly } = await verifySession();
 
   const params = await searchParams;
   const today = todayInTokyo();
@@ -175,12 +175,16 @@ export default async function MoneyPage({ searchParams }: PageProps<"/money">) {
                     <span className="rounded bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-800">
                       {PROJECT_STATUS_LABELS[project.status]}
                     </span>
-                    <Link
-                      href={`/projects/${project.id}/edit`}
-                      className="font-medium break-words underline"
-                    >
-                      {project.title}
-                    </Link>
+                    {readOnly ? (
+                      <span className="font-medium break-words">{project.title}</span>
+                    ) : (
+                      <Link
+                        href={`/projects/${project.id}/edit`}
+                        className="font-medium break-words underline"
+                      >
+                        {project.title}
+                      </Link>
+                    )}
                   </p>
                   <p className="text-sm text-zinc-700">
                     {project.customer.name} ・ 売上日 {project.earned_on.replaceAll("-", "/")}

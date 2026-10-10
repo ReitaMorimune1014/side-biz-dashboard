@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { DeleteButton } from "@/components/delete-button";
-import { verifySession } from "@/lib/auth/dal";
+import { verifyWritableSession } from "@/lib/auth/dal";
 import { getActiveCustomer } from "@/lib/customers/repository";
 import { isCustomerId } from "@/lib/customers/schema";
 import { createClient } from "@/lib/supabase/server";
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 export default async function EditCustomerPage({
   params,
 }: PageProps<"/customers/[id]/edit">) {
-  await verifySession();
+  await verifyWritableSession();
 
   const { id } = await params;
   if (!isCustomerId(id)) notFound();

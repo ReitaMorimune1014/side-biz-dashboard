@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { verifySession } from "@/lib/auth/dal";
+import { verifyWritableSession } from "@/lib/auth/dal";
 import { listActiveCustomers } from "@/lib/customers/repository";
 import { getProject } from "@/lib/projects/repository";
 import { isProjectId } from "@/lib/projects/schema";
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 };
 
 export default async function EditProjectPage({ params }: PageProps<"/projects/[id]/edit">) {
-  await verifySession();
+  await verifyWritableSession();
 
   const { id } = await params;
   if (!isProjectId(id)) notFound();
