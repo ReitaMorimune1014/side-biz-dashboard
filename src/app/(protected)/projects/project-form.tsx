@@ -3,7 +3,11 @@
 import Link from "next/link";
 import { useActionState, type ReactNode } from "react";
 import { PROJECT_MEMO_MAX, PROJECT_TITLE_MAX } from "@/lib/projects/schema";
-import { PROJECT_STATUS_LABELS, type ProjectStatus } from "@/lib/projects/status";
+import {
+  PROJECT_STATUSES,
+  PROJECT_STATUS_LABELS,
+  type ProjectStatus,
+} from "@/lib/projects/status";
 import type { ProjectFormState, ProjectFormValues } from "./actions";
 
 type CustomerOption = { id: string; name: string; deleted?: boolean };
@@ -12,8 +16,8 @@ type Props = {
   action: (state: ProjectFormState, formData: FormData) => Promise<ProjectFormState>;
   customers: CustomerOption[];
   defaultValues?: ProjectFormValues;
-  /** 編集のときだけ渡す。options は「今の状態」と「遷移できる状態」 */
-  status?: { current: ProjectStatus; options: readonly ProjectStatus[] };
+  /** 編集のときだけ渡す。開いたときの状態 */
+  status?: { current: ProjectStatus };
   submitLabel: string;
 };
 
@@ -151,10 +155,9 @@ export function ProjectForm({ action, customers, defaultValues, status, submitLa
             aria-describedby={describedBy("status", errors.status)}
             className={inputClass}
           >
-            {status.options.map((option) => (
+            {PROJECT_STATUSES.map((option) => (
               <option key={option} value={option}>
                 {PROJECT_STATUS_LABELS[option]}
-                {option === status.current ? "(今の状態)" : ""}
               </option>
             ))}
           </select>

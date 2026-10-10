@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/supabase/database.types'
 import type { ProjectInput, StatusChange } from './schema'
-import { canTransition, isProjectStatus, type ProjectStatus } from './status'
+import { isProjectStatus, type ProjectStatus } from './status'
 
 type Client = SupabaseClient<Database>
 
@@ -74,24 +74,23 @@ export async function createProject(client: Client, input: ProjectInput): Promis
 
 export type UpdateProjectResult =
   | { ok: true; project: Project }
-  | { ok: false; reason: 'invalid_transition' | 'conflict' | 'not_found' }
+  | { ok: false; reason: 'conflict' | 'not_found' }
+
+type ProjectUpdate = Database['public']['Tables']['projects']['Update']
 
 /**
- * 項目と状態をまとめて更新する。
- * 状態は「フォームを開いたときの状態(from)」が DB と一致するときだけ変える。
+ * 状態が「画面に表示していた状態(from)」のときだけ更新する。
  * 別の画面で先に状態が変わっていたら conflict を返す。
  */
-export async function updateProject(
+async function updateIfStatusIs(
   client: Client,
   id: string,
-  input: ProjectInput,
   change: StatusChange,
+  values: ProjectUpdate,
 ): Promise<UpdateProjectResult> {
-  if (!canTransition(change.from, change.to)) return { ok: false, reason: 'invalid_transition' }
-
   const { data, error } = await client
     .from('projects')
-    .update({ ...input, status: change.to })
+    .update({ ...values, status: change.to })
     .eq('id', id)
     .eq('status', change.from)
     .select(COLUMNS)
@@ -101,4 +100,23 @@ export async function updateProject(
 
   const current = await getProject(client, id)
   return { ok: false, reason: current ? 'conflict' : 'not_found' }
+}
+
+/** 項目と状態をまとめて更新する(編集フォーム) */
+export async function updateProject(
+  client: Client,
+  id: string,
+  input: ProjectInput,
+  change: StatusChange,
+): Promise<UpdateProjectResult> {
+  return updateIfStatusIs(client, id, change, input)
+}
+
+/** 状態だけを変える(かんばんのボタン・一覧のプルダウン) */
+export async function changeProjectStatus(
+  client: Client,
+  id: string,
+  change: StatusChange,
+): Promise<UpdateProjectResult> {
+  return updateIfStatusIs(client, id, change, {})
 }

@@ -5,6 +5,8 @@ import { formatYen } from "@/lib/money";
 import { listProjects } from "@/lib/projects/repository";
 import { PROJECT_STATUS_LABELS } from "@/lib/projects/status";
 import { createClient } from "@/lib/supabase/server";
+import { StatusSelect } from "./status-select";
+import { ViewTabs } from "./view-tabs";
 
 export const metadata: Metadata = {
   title: "案件",
@@ -16,14 +18,17 @@ export default async function ProjectsPage() {
 
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-4 py-10">
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold">案件</h1>
-        <Link
-          href="/projects/new"
-          className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white"
-        >
-          案件を追加
-        </Link>
+        <div className="flex items-center gap-3">
+          <ViewTabs current="/projects" />
+          <Link
+            href="/projects/new"
+            className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white"
+          >
+            案件を追加
+          </Link>
+        </div>
       </div>
 
       {projects.length === 0 ? (
@@ -62,13 +67,21 @@ export default async function ProjectsPage() {
                   </div>
                 </dl>
               </div>
-              <Link
-                href={`/projects/${project.id}/edit`}
-                aria-label={`「${project.title}」を編集`}
-                className="shrink-0 self-start rounded-md border border-zinc-400 px-3 py-1.5 text-sm font-medium"
-              >
-                編集
-              </Link>
+              <div className="flex shrink-0 flex-col items-start gap-2 sm:items-end">
+                <StatusSelect
+                  key={`${project.id}-${project.status}`}
+                  projectId={project.id}
+                  title={project.title}
+                  from={project.status}
+                />
+                <Link
+                  href={`/projects/${project.id}/edit`}
+                  aria-label={`「${project.title}」を編集`}
+                  className="rounded-md border border-zinc-400 px-3 py-1.5 text-sm font-medium"
+                >
+                  編集
+                </Link>
+              </div>
             </li>
           ))}
         </ul>

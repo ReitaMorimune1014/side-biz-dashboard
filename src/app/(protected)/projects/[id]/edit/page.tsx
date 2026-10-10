@@ -4,7 +4,6 @@ import { verifySession } from "@/lib/auth/dal";
 import { listActiveCustomers } from "@/lib/customers/repository";
 import { getProject } from "@/lib/projects/repository";
 import { isProjectId } from "@/lib/projects/schema";
-import { nextStatuses } from "@/lib/projects/status";
 import { createClient } from "@/lib/supabase/server";
 import { updateProjectAction } from "../../actions";
 import { ProjectForm } from "../../project-form";
@@ -47,10 +46,7 @@ export default async function EditProjectPage({ params }: PageProps<"/projects/[
           memo: project.memo ?? "",
           status: project.status,
         }}
-        status={{
-          current: project.status,
-          options: [project.status, ...nextStatuses(project.status)],
-        }}
+        status={{ current: project.status }}
         submitLabel="保存する"
       />
     </main>

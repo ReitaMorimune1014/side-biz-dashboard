@@ -1,6 +1,12 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { createCustomer, softDeleteCustomer } from '@/lib/customers/repository'
-import { createProject, getProject, listProjects, updateProject } from '@/lib/projects/repository'
+import {
+  changeProjectStatus,
+  createProject,
+  getProject,
+  listProjects,
+  updateProject,
+} from '@/lib/projects/repository'
 import type { ProjectInput } from '@/lib/projects/schema'
 import { signUpTestUser, type TestUser } from './supabase'
 
@@ -35,7 +41,7 @@ describe('updateProject', () => {
     expect(result).toMatchObject({ ok: true, project: { title: '改題', status: 'ordered' } })
   })
 
-  it('ルールに反する遷移は、DB に送る前に拒否する', async () => {
+  it('飛び越した状態にも変更できる', async () => {
     const project = await createProject(alice.client, input())
 
     const result = await updateProject(alice.client, project.id, input(), {
@@ -43,8 +49,7 @@ describe('updateProject', () => {
       to: 'paid',
     })
 
-    expect(result).toEqual({ ok: false, reason: 'invalid_transition' })
-    expect((await getProject(alice.client, project.id))?.status).toBe('estimate')
+    expect(result).toMatchObject({ ok: true, project: { status: 'paid' } })
   })
 
   it('フォームを開いた後に、別の画面で状態が変わっていたら conflict にする', async () => {
@@ -72,6 +77,60 @@ describe('updateProject', () => {
 
     expect(result).toEqual({ ok: false, reason: 'not_found' })
     expect((await getProject(alice.client, project.id))?.title).toBe('Aの案件')
+  })
+})
+
+describe('changeProjectStatus(かんばんのボタン・一覧のプルダウン)', () => {
+  it('状態だけを変え、ほかの項目は変えない', async () => {
+    const project = await createProject(alice.client, input({ title: 'そのまま', amount: 5000 }))
+
+    const result = await changeProjectStatus(alice.client, project.id, {
+      from: 'estimate',
+      to: 'ordered',
+    })
+
+    expect(result).toMatchObject({
+      ok: true,
+      project: { status: 'ordered', title: 'そのまま', amount: 5000 },
+    })
+  })
+
+  it('失注から進行のように、どの状態へも変更できる', async () => {
+    const project = await createProject(alice.client, input())
+    await changeProjectStatus(alice.client, project.id, { from: 'estimate', to: 'lost' })
+
+    const result = await changeProjectStatus(alice.client, project.id, {
+      from: 'lost',
+      to: 'in_progress',
+    })
+
+    expect(result).toMatchObject({ ok: true, project: { status: 'in_progress' } })
+  })
+
+  it('画面に表示していた状態が古ければ conflict にし、状態を変えない', async () => {
+    const project = await createProject(alice.client, input())
+    await changeProjectStatus(alice.client, project.id, { from: 'estimate', to: 'ordered' })
+
+    // 別のタブには、まだ「見積」の列に表示されている
+    const result = await changeProjectStatus(alice.client, project.id, {
+      from: 'estimate',
+      to: 'lost',
+    })
+
+    expect(result).toEqual({ ok: false, reason: 'conflict' })
+    expect((await getProject(alice.client, project.id))?.status).toBe('ordered')
+  })
+
+  it('他人の案件は not_found になり、変わらない', async () => {
+    const project = await createProject(alice.client, input())
+
+    const result = await changeProjectStatus(bob.client, project.id, {
+      from: 'estimate',
+      to: 'lost',
+    })
+
+    expect(result).toEqual({ ok: false, reason: 'not_found' })
+    expect((await getProject(alice.client, project.id))?.status).toBe('estimate')
   })
 })
 
