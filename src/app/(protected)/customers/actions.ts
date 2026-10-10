@@ -11,13 +11,13 @@ import {
 import {
   isCustomerId,
   parseCustomerInput,
+  readCustomerForm,
   type CustomerFieldErrors,
+  type CustomerFormValues,
 } from "@/lib/customers/schema";
 import { createClient } from "@/lib/supabase/server";
 
 const CUSTOMERS_PATH = "/customers";
-
-export type CustomerFormValues = { name: string; memo: string };
 
 export type CustomerFormState =
   | { status: "idle" }
@@ -28,15 +28,6 @@ export type CustomerFormState =
       values: CustomerFormValues;
     };
 
-function readForm(formData: FormData): CustomerFormValues {
-  const name = formData.get("name");
-  const memo = formData.get("memo");
-  return {
-    name: typeof name === "string" ? name : "",
-    memo: typeof memo === "string" ? memo : "",
-  };
-}
-
 const SAVE_FAILED = "保存できませんでした。時間をおいて、もう一度お試しください";
 const NOT_FOUND = "顧客が見つかりません。削除された可能性があります";
 
@@ -46,7 +37,7 @@ export async function createCustomerAction(
 ): Promise<CustomerFormState> {
   await requireUser();
 
-  const values = readForm(formData);
+  const values = readCustomerForm(formData);
   const parsed = parseCustomerInput(values);
   if (!parsed.success) {
     return { status: "error", fieldErrors: parsed.fieldErrors, values };
@@ -70,7 +61,7 @@ export async function updateCustomerAction(
 ): Promise<CustomerFormState> {
   await requireUser();
 
-  const values = readForm(formData);
+  const values = readCustomerForm(formData);
   if (!isCustomerId(id)) {
     return { status: "error", fieldErrors: {}, message: NOT_FOUND, values };
   }

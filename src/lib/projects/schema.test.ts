@@ -5,8 +5,10 @@ import {
   PROJECT_TITLE_MAX,
   isProjectId,
   parseEarnedOn,
+  parseProjectEdit,
   parseProjectInput,
   parseStatusChange,
+  readProjectForm,
 } from './schema'
 
 describe('parseEarnedOn', () => {
@@ -149,6 +151,51 @@ describe('parseStatusChange', () => {
     [{}],
   ])('不正な値 %o は拒否する', (values) => {
     expect(parseStatusChange(values).success).toBe(false)
+  })
+})
+
+describe('parseProjectEdit', () => {
+  const edit = { ...valid, status: 'delivered', expected_status: 'in_progress', earned_on: '' }
+
+  it('項目・状態の変更・売上日をまとめて読む', () => {
+    expect(parseProjectEdit(edit)).toEqual({
+      success: true,
+      data: {
+        input: { customer_id: CUSTOMER_ID, title: 'LP制作', amount: 120000, due_date: '2026-10-31', memo: null },
+        change: { from: 'in_progress', to: 'delivered' },
+        earnedOn: null,
+      },
+    })
+  })
+
+  it('3つのエラーを、項目ごとにまとめて返す', () => {
+    expect(parseProjectEdit({ ...edit, title: '', status: 'unknown', earned_on: '2026-02-30' })).toEqual({
+      success: false,
+      fieldErrors: {
+        title: '題名を入力してください',
+        status: '状態を選んでください',
+        earned_on: '売上日は正しい日付で入力してください',
+      },
+    })
+  })
+})
+
+describe('readProjectForm', () => {
+  it('案件の項目と、開いたときの状態を読む', () => {
+    const formData = new FormData()
+    formData.set('title', 'LP制作')
+    formData.set('expected_status', 'estimate')
+
+    expect(readProjectForm(formData)).toEqual({
+      customer_id: '',
+      title: 'LP制作',
+      amount: '',
+      due_date: '',
+      memo: '',
+      status: '',
+      earned_on: '',
+      expected_status: 'estimate',
+    })
   })
 })
 

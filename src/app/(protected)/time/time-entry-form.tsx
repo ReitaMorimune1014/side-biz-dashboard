@@ -2,8 +2,16 @@
 
 import Link from "next/link";
 import { useActionState, type ReactNode } from "react";
-import { TIME_ENTRY_MEMO_MAX } from "@/lib/time-entries/schema";
-import type { TimeEntryFormState, TimeEntryFormValues } from "./actions";
+import { useClientValidation } from "@/components/use-client-validation";
+import { fieldErrorsOf } from "@/lib/forms/form-values";
+import {
+  TIME_ENTRY_MEMO_MAX,
+  parseTimeEntryInput,
+  readTimeEntryForm,
+  timeEntryFieldOf,
+  type TimeEntryFormValues,
+} from "@/lib/time-entries/schema";
+import type { TimeEntryFormState } from "./actions";
 
 export type ProjectOption = { id: string; label: string };
 
@@ -19,6 +27,9 @@ type Props = {
 const initialState: TimeEntryFormState = { status: "idle" };
 
 const inputClass = "rounded-md border border-zinc-400 px-3 py-2";
+
+const validate = (formData: FormData) =>
+  fieldErrorsOf(parseTimeEntryInput(readTimeEntryForm(formData)));
 
 function Field({
   id,
@@ -50,13 +61,25 @@ function Field({
 
 export function TimeEntryForm({ action, projects, defaultValues, submitLabel, cancelHref }: Props) {
   const [state, formAction, pending] = useActionState(action, initialState);
+  const { formRef, errors, onSubmit, onChange } = useClientValidation({
+    validate,
+    serverState: state,
+    serverErrors: state.status === "error" ? state.fieldErrors : {},
+    fieldOf: timeEntryFieldOf,
+  });
 
   const values = state.status === "error" ? state.values : defaultValues;
-  const errors = state.status === "error" ? state.fieldErrors : {};
   const message = state.status === "error" ? state.message : undefined;
 
   return (
-    <form action={formAction} className="flex flex-col gap-5" noValidate>
+    <form
+      ref={formRef}
+      action={formAction}
+      onSubmit={onSubmit}
+      onChange={onChange}
+      className="flex flex-col gap-5"
+      noValidate
+    >
       {message && (
         <p role="alert" className="rounded-md bg-red-50 p-3 text-sm text-red-800">
           {message}

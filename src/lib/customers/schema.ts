@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { readFields } from '@/lib/forms/form-values'
 
 // DB の check 制約(supabase/migrations の customers)と同じ値にする
 export const CUSTOMER_NAME_MAX = 100
@@ -41,6 +42,13 @@ export function parseCustomerInput(values: { name: unknown; memo: unknown }): Pa
     }
   }
   return { success: false, fieldErrors }
+}
+
+export const CUSTOMER_FORM_FIELDS = ['name', 'memo'] as const
+export type CustomerFormValues = Record<(typeof CUSTOMER_FORM_FIELDS)[number], string>
+
+export function readCustomerForm(formData: FormData): CustomerFormValues {
+  return readFields(formData, CUSTOMER_FORM_FIELDS)
 }
 
 export function isCustomerId(value: string): boolean {

@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { wholeNumber } from '@/lib/form-number'
+import { readFields } from '@/lib/forms/form-values'
 import type { Weekday } from '@/lib/weekly/week'
 
 // DB の既定値と check 制約(supabase/migrations の user_settings)と同じ値にする
@@ -49,6 +50,18 @@ const FIELD_OF: Record<string, SettingsField> = {
   week_start: 'week_start',
 }
 
+/** 入力欄の name から、エラーを出す項目を決める */
+export function settingsFieldOf(name: string): SettingsField | undefined {
+  return Object.hasOwn(FIELD_OF, name) ? FIELD_OF[name] : undefined
+}
+
+export const SETTINGS_FORM_FIELDS = ['hours', 'minutes', 'week_start'] as const
+export type SettingsFormValues = Partial<Record<(typeof SETTINGS_FORM_FIELDS)[number], string>>
+
+export function readSettingsForm(formData: FormData): SettingsFormValues {
+  return readFields(formData, SETTINGS_FORM_FIELDS)
+}
+
 const asString = (value: unknown) => (typeof value === 'string' ? value : '')
 
 export function parseSettingsInput(
@@ -64,7 +77,7 @@ export function parseSettingsInput(
   const fieldErrors: SettingsFieldErrors = {}
   for (const issue of result.error.issues) {
     const path = issue.path[0]
-    const field = typeof path === 'string' ? FIELD_OF[path] : undefined
+    const field = typeof path === 'string' ? settingsFieldOf(path) : undefined
     if (field && !(field in fieldErrors)) fieldErrors[field] = issue.message
   }
   return { success: false, fieldErrors }
