@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { DeleteButton } from "@/components/delete-button";
+import { WeeklySummary } from "@/components/weekly-summary";
 import { verifySession } from "@/lib/auth/dal";
 import { formatDateWithWeekday, todayInTokyo } from "@/lib/date";
 import { listProjects } from "@/lib/projects/repository";
@@ -13,7 +14,6 @@ import { weekRange } from "@/lib/weekly/week";
 import { createTimeEntryAction, deleteTimeEntryAction } from "./actions";
 import { toProjectOptions } from "./project-options";
 import { TimeEntryForm } from "./time-entry-form";
-import { WeeklySummary } from "./weekly-summary";
 
 export const metadata: Metadata = {
   title: "稼働",
