@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { formatDateWithWeekday, todayInTokyo } from './date'
+import { formatDateTimeInTokyo, formatDateWithWeekday, todayInTokyo } from './date'
+
+describe('formatDateTimeInTokyo', () => {
+  it('日本時間の日時にする(日付をまたぐときも)', () => {
+    expect(formatDateTimeInTokyo('2026-10-09T15:05:00Z')).toBe('2026/10/10 00:05')
+    expect(formatDateTimeInTokyo('2026-10-09T09:30:12.345+00:00')).toBe('2026/10/09 18:30')
+  })
+})
 
 describe('todayInTokyo', () => {
   it('UTC では前日でも、日本時間の日付を返す', () => {

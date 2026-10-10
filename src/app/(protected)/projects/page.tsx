@@ -122,23 +122,34 @@ export default async function ProjectsPage({ searchParams }: PageProps<"/project
                   </div>
                 </dl>
               </div>
-              {!readOnly && (
-                <div className="flex shrink-0 flex-wrap items-start gap-2 sm:flex-col sm:items-end">
+              <div className="flex shrink-0 flex-wrap items-start gap-2 sm:flex-col sm:items-end">
+                {!readOnly && (
                   <StatusSelect
                     key={`${project.id}-${project.status}`}
                     projectId={project.id}
                     title={project.title}
                     from={project.status}
                   />
+                )}
+                <div className="flex gap-2">
+                  {!readOnly && (
+                    <Link
+                      href={`/projects/${project.id}/edit`}
+                      aria-label={`「${project.title}」を編集`}
+                      className="inline-flex min-h-9 items-center rounded-md border border-zinc-400 px-3 text-sm font-medium"
+                    >
+                      編集
+                    </Link>
+                  )}
                   <Link
-                    href={`/projects/${project.id}/edit`}
-                    aria-label={`「${project.title}」を編集`}
+                    href={`/projects/${project.id}/history`}
+                    aria-label={`「${project.title}」の変更履歴`}
                     className="inline-flex min-h-9 items-center rounded-md border border-zinc-400 px-3 text-sm font-medium"
                   >
-                    編集
+                    履歴
                   </Link>
                 </div>
-              )}
+              </div>
             </li>
           ))}
         </ul>

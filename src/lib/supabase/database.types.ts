@@ -37,6 +37,26 @@ export type Database = {
                   Relationships: [
                     
                   ]
+                },"project_history": {
+                  Row: {
+                    "changed_at": string,"changes": NonNullable<Json>,"id": number,"operation": string,"project_id": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "changed_at"?: string,"changes": NonNullable<Json>,"id"?: never,"operation": string,"project_id": string,"user_id": string
+                  }
+                  Update: {
+                    "changed_at"?: string,"changes"?: NonNullable<Json>,"id"?: never,"operation"?: string,"project_id"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "project_history_project_id_user_id_fkey"
+      columns: ["project_id","user_id"]
+isOneToOne: false
+      referencedRelation: "projects"
+      referencedColumns: ["id","user_id"]
+    }
+                  ]
                 },"projects": {
                   Row: {
                     "amount": number,"created_at": string,"customer_id": string,"due_date": string | null,"earned_on": string | null,"id": string,"memo": string | null,"status": string,"title": string,"updated_at": string,"user_id": string

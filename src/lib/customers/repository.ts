@@ -22,6 +22,20 @@ export async function listActiveCustomers(client: Client): Promise<Customer[]> {
   return data
 }
 
+/** 顧客の ID から名前を引く表。履歴の表示用なので、論理削除した顧客も含める */
+export async function getCustomerNames(
+  client: Client,
+  ids: readonly string[],
+): Promise<Map<string, { name: string; deleted: boolean }>> {
+  if (ids.length === 0) return new Map()
+  const { data, error } = await client
+    .from('customers')
+    .select('id, name, deleted_at')
+    .in('id', [...new Set(ids)])
+  if (error) throw error
+  return new Map(data.map((c) => [c.id, { name: c.name, deleted: c.deleted_at !== null }]))
+}
+
 export async function getActiveCustomer(client: Client, id: string): Promise<Customer | null> {
   const { data, error } = await client
     .from('customers')
