@@ -1,18 +1,35 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { DeleteButton } from "@/components/delete-button";
+import { ListControls } from "@/components/list-controls";
+import { Pagination } from "@/components/pagination";
 import { verifySession } from "@/lib/auth/dal";
+import {
+  CUSTOMER_SORTS,
+  CUSTOMER_SORT_LABELS,
+  applyCustomerListQuery,
+  customerListParams,
+  hasCustomerFilters,
+  parseCustomerListQuery,
+} from "@/lib/customers/list";
 import { listActiveCustomers } from "@/lib/customers/repository";
+import { listHref } from "@/lib/list/query";
 import { createClient } from "@/lib/supabase/server";
 import { deleteCustomerAction } from "./actions";
-import { DeleteButton } from "@/components/delete-button";
 
 export const metadata: Metadata = {
   title: "顧客",
 };
 
-export default async function CustomersPage() {
+const PATH = "/customers";
+
+export default async function CustomersPage({ searchParams }: PageProps<"/customers">) {
   await verifySession();
-  const customers = await listActiveCustomers(await createClient());
+  const query = parseCustomerListQuery(await searchParams);
+  const allCustomers = await listActiveCustomers(await createClient());
+  const page = applyCustomerListQuery(allCustomers, query);
+  const customers = page.items;
+  const clearHref = listHref(PATH, customerListParams({ ...query, q: "" }, 1));
 
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-4 py-10">
@@ -26,11 +43,36 @@ export default async function CustomersPage() {
         </Link>
       </div>
 
-      {customers.length === 0 ? (
+      {allCustomers.length > 0 && (
+        <ListControls
+          action={PATH}
+          searchLabel="顧客を検索"
+          placeholder="名前・メモ"
+          q={query.q}
+          selects={[
+            {
+              name: "sort",
+              label: "並び順",
+              value: query.sort,
+              options: CUSTOMER_SORTS.map((s) => ({ value: s, label: CUSTOMER_SORT_LABELS[s] })),
+            },
+          ]}
+          clearHref={hasCustomerFilters(query) ? clearHref : undefined}
+        />
+      )}
+
+      {allCustomers.length === 0 ? (
         <div className="rounded-md border border-dashed border-zinc-400 p-8 text-center">
           <p className="text-zinc-700">まだ顧客が登録されていません。</p>
           <Link href="/customers/new" className="mt-2 inline-block text-sm underline">
             最初の顧客を追加する
+          </Link>
+        </div>
+      ) : customers.length === 0 ? (
+        <div className="rounded-md border border-dashed border-zinc-400 p-8 text-center">
+          <p className="text-zinc-700">条件に合う顧客はありません。</p>
+          <Link href={clearHref} className="mt-2 inline-block text-sm underline">
+            条件をクリアする
           </Link>
         </div>
       ) : (
@@ -64,6 +106,14 @@ export default async function CustomersPage() {
             </li>
           ))}
         </ul>
+      )}
+
+      {customers.length > 0 && (
+        <Pagination
+          page={page}
+          hrefFor={(n) => listHref(PATH, customerListParams(query, n))}
+          label="顧客のページ"
+        />
       )}
     </main>
   );
