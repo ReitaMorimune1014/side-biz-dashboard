@@ -61,7 +61,7 @@
 
 F16〜F18(Stripeのテスト決済、請求書のPDF出力、期限のリマインド)は、v1では実装しない。
 
-## 技術と選定理由
+## 技術
 
 | 技術 | 用途 | 
 | --- | --- | 
@@ -70,15 +70,13 @@ F16〜F18(Stripeのテスト決済、請求書のPDF出力、期限のリマイ�
 | Tailwind CSS 4 | スタイル |
 | Supabase(Auth、Postgres、RLS) | 認証とデータベース |
 | `@supabase/ssr` / `@supabase/supabase-js` | サーバーから Supabase を使う |
-| Zod 4 | 入力検証 | 画面とサーバーで同じ検証関数を使うため |
+| Zod 4 | 入力検証 |
 | Vitest / Testing Library / jsdom | ユニットテスト、結合テスト |
 | `pg` | 結合テストで、ローカルの DB に直接つなぐ | 
 | Supabase CLI | ローカルの Supabase の起動、マイグレーションの適用、型の生成 |
 | ESLint | lint |
 | GitHub Actions | CI(PRごとの lint・型チェック・テスト・ビルド・結合テスト)、毎週の依存の監査 |
 | Vercel | 公開デモの置き場所 |
-
-売上の棒グラフは、ライブラリを使わずに描いている(理由: 要確認)。
 
 ## 構成図
 
@@ -219,7 +217,6 @@ erDiagram
 | --- | --- | --- | --- |
 | ユニット | `src/**/*.test.{ts,tsx}` | 業務ロジック(状態、集計、週の計算、検証、CSV、一覧の条件、認可の判定など)と画面の部品を、jsdom で確かめる | 514件(45ファイル) |
 | 結合 | `tests/integration/*.test.ts` | ローカルの Supabase に実際にリクエストを送り、RLS によるデータの分離、閲覧専用、変更履歴、データの読み書きを確かめる | 88件(10ファイル) |
-| E2E | - | 未実装 | - |
 
 件数は 2026-10-10 に `npm run test` と `npm run test:integration` を実行して数えた。
 
