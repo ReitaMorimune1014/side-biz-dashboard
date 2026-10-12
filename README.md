@@ -63,20 +63,20 @@ F16〜F18(Stripeのテスト決済、請求書のPDF出力、期限のリマイ�
 
 ## 技術と選定理由
 
-| 技術 | 用途 | 選定理由 |
-| --- | --- | --- |
-| Next.js 16(App Router)/ React 19 | 画面とサーバー(Server Components、Server Actions、Route Handlers、`proxy.ts`) | 要確認 |
-| TypeScript | 全体 | 要確認 |
-| Tailwind CSS 4 | スタイル | 要確認 |
-| Supabase(Auth、Postgres、RLS) | 認証とデータベース | 認証は外部サービスに任せ、認可をデータベース側でも強制するため |
-| `@supabase/ssr` / `@supabase/supabase-js` | サーバーから Supabase を使う | セッションを Cookie で持つため(`@supabase/ssr`)。`@supabase/supabase-js` は要確認 |
+| 技術 | 用途 | 
+| --- | --- | 
+| Next.js 16(App Router)/ React 19 | 画面とサーバー(Server Components、Server Actions、Route Handlers、`proxy.ts`) |
+| TypeScript | 全体 |
+| Tailwind CSS 4 | スタイル |
+| Supabase(Auth、Postgres、RLS) | 認証とデータベース |
+| `@supabase/ssr` / `@supabase/supabase-js` | サーバーから Supabase を使う |
 | Zod 4 | 入力検証 | 画面とサーバーで同じ検証関数を使うため |
-| Vitest / Testing Library / jsdom | ユニットテスト、結合テスト | 要確認 |
-| `pg` | 結合テストで、ローカルの DB に直接つなぐ | 利用者の API では変えられない `app_metadata`(閲覧専用の印)を、テストで準備するため |
-| Supabase CLI | ローカルの Supabase の起動、マイグレーションの適用、型の生成 | 要確認 |
-| ESLint | lint | 要確認 |
-| GitHub Actions | CI(PRごとの lint・型チェック・テスト・ビルド・結合テスト)、毎週の依存の監査 | 要確認 |
-| Vercel | 公開デモの置き場所 | 要確認 |
+| Vitest / Testing Library / jsdom | ユニットテスト、結合テスト |
+| `pg` | 結合テストで、ローカルの DB に直接つなぐ | 
+| Supabase CLI | ローカルの Supabase の起動、マイグレーションの適用、型の生成 |
+| ESLint | lint |
+| GitHub Actions | CI(PRごとの lint・型チェック・テスト・ビルド・結合テスト)、毎週の依存の監査 |
+| Vercel | 公開デモの置き場所 |
 
 売上の棒グラフは、ライブラリを使わずに描いている(理由: 要確認)。
 
