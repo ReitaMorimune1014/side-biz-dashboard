@@ -65,13 +65,12 @@
 ## 非機能要件
 - セキュリティ: 認証は外部サービスに任せる。認可はデータベース側でも強制し、認可のテストを書く。秘密情報はリポジトリに入れない。
 - プライバシー: 実データは、公開リポジトリと公開デモに入れない。
-- テスト: 認可、状態遷移、集計の単体テストは必須。主要な流れのE2Eテストを1本。
 - CI: lint、型チェック、テスト、ビルドをPRごとに自動で実行する。
 - アクセシビリティ: キーボード操作、十分なコントラスト、フォームのラベル。
 - 公開: READMEに、起動手順、構成図、ER図、設計理由、既知の課題を書く。
 
 ## 技術
-Next.js(App Router) / TypeScript / Tailwind CSS / Supabase(認証・DB・行単位の権限) / Zod(画面とサーバーで同じ検証関数を使う) / Vitest + Playwright(1本) / Vercel + GitHub Actions
+Next.js(App Router) / TypeScript / Tailwind CSS / Supabase(認証・DB・行単位の権限) / Zod(画面とサーバーで同じ検証関数を使う) / Vitest  / Vercel + GitHub Actions
 
 ## 開発ルール
 - 1つのID = 1つのPR。受け入れ条件を満たすテストを付ける。
